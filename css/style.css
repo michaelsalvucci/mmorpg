@@ -1,0 +1,102 @@
+/* 
+    Document   : style.css
+    Created on : Jan 23, 2015, 1:11:32 AM
+    Author     : michael
+    Description:
+        Purpose of the stylesheet follows.
+*/
+
+/* 
+   TODO customize this sample style
+   Syntax recommendation http://www.w3.org/TR/REC-CSS2/
+*/
+
+root { 
+  display: block;
+}
+
+#playfield textarea#menu {
+  background-color: yellow;
+  border: none;
+  height: 80%;
+  width: 80%;
+  position: absolute;
+  z-index: 0;
+}
+
+#backpack {
+  background-color: red;
+  margin: 50 0 0 0;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#chat {
+  background-color: orangered;
+  margin: 50 0 0 200;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#debug {
+  background-color: orange;
+  margin: 50 0 0 400;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#email {
+  background-color: green;
+  margin: 50 0 0 600;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#login {
+  background-color: blue;
+  margin: 300 0 0 100;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#map {
+  background-color: red;
+  
+  background: url(../images/map.png);
+  background-size: 100%;
+  background-repeat: no-repeat;
+  
+  margin: 10 0 0 700;
+  position: absolute;
+  height: 300;  
+  width: 300;
+  z-index: 1;
+}
+
+#paperdoll {
+  background-color: purple;
+  margin: 300 0 0 300;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
+
+#trade {
+  background-color: indigo;
+  margin: 300 0 0 600;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+}
