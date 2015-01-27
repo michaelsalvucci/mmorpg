@@ -11,20 +11,25 @@
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
+html {
+  background-color: darkcyan;  /* fixes page edge */
+}
+
 root { 
   display: block;
 }
 
 #playfield textarea#menu {
-  background-color: yellow;
+  background-color: darkcyan;
   border: none;
-  height: 80%;
-  width: 80%;
+  height: 99%;
+  width: 99%;
+  padding: 4px;
   position: absolute;
   z-index: 0;
 }
 
-#backpack {
+#bank {
   background-color: red;
   margin: 50 0 0 0;
   position: absolute;
@@ -60,12 +65,41 @@ root {
   z-index: 1;
 }
 
-#login {
-  background-color: blue;
-  margin: 300 0 0 100;
+#inventory {
+  background-color: brown;
+  margin: 500 0 0 300;
   position: absolute;
-  height: 200;  
+  height: 200;
   width: 200;
+  z-index: 1;
+}
+
+.each_inventory {
+  background-color: yellowgreen;
+  margin: 2px;
+  position: relative;
+  height: 32px;
+  width: 32px;
+  z-index: 2;
+}
+
+#login {
+  background-image: url('/images/backgrounds/parchment.jpg');
+  background-color: blue;
+  border-radius: 10px;
+  font-family: 'IM Fell English SC', serif;
+  position: absolute;
+  
+  /* margin: 300 0 0 100; */
+  /* to center on the page */
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+  
+  height: 250px;
+  width: 200px;  
   z-index: 1;
 }
 
@@ -93,10 +127,19 @@ root {
 }
 
 #trade {
-  background-color: indigo;
+  background-color: lightskyblue;
   margin: 300 0 0 600;
   position: absolute;
   height: 200;  
   width: 200;
+  z-index: 1;
+}
+
+#compass {
+  background-color: lightgreen;
+  margin: 0 0 0 300;
+  position: absolute;
+  height: 50;  
+  width: 400;
   z-index: 1;
 }

@@ -4,27 +4,90 @@
   <meta name="author" content="Michael Salvucci - 931-242-4226">
   <meta name="description" content="mmorpg">
   <script src="vendor/jquery/dist/jquery.min.js"></script>
+  
+  <script src="/node_modules/socket.io-client/socket.io.js"></script>
+  <script src="https://cdn.socket.io/socket.io-1.3.2.js"></script>
+  
   <script src="js/playfield.js"></script>
   <link rel="stylesheet" type="text/css" href="css/style.css">
-  
-  
+
+  <!--- @TODO: download and install this --->
   <script src="//code.jquery.com/ui/1.11.2/jquery-ui.js"></script>  
-  
+
+  <link href='http://fonts.googleapis.com/css?family=IM+Fell+English+SC' rel='stylesheet' type='text/css'>
   
 </head>
+
 <body>
 <div id="playfield">
   <form>
     <textarea id="menu"></textarea>
   </form>
-  <div id="backpack">backpack window</div>
-  <div id="chat">chat window</div>
-  <div id="debug">debug window</div>
+  <div id="bank">bank window</div>
+  
+  <div id="chat">
+    <div id="titlebar_chat">CHAT</div>
+    <div id="messages" style="height:125px;max-height:125px;overflow-y:auto;padding:2px 2px 20px 2px;"></div>
+    <div id="contents_message" style="padding:10px 2px 2px 2px;">
+        <input id="message">
+    </div>
+  </div>
+  
+  <div id="debug">debug window - commands: b,c,e,i,l,m,p,t,u</div>
   <div id="email">email window</div>
-  <div id="login">login window</div>
+
+  <div id="inventory">
+    <div id="titlebar_inventory">
+      INVENTORY
+    </div>
+    <div id="contents_inventory">
+      CONTENTS GOES HERE
+      <div class="each_inventory"></div>
+      <div class="each_inventory"></div>
+      <div class="each_inventory"></div>
+      <div class="each_inventory"></div>
+      <div class="each_inventory"></div>
+      <div class="each_inventory"></div>
+    </div>
+  </div>
+
+  <div id="login" style="padding: 10px;">
+    <div id="titlebar_login">
+      Sign In
+    </div>
+    <p>Email: <input id="login_email" type="email" value="demo@demo.com"></p>
+    <p>Password: <input id="login_password" type="password" value="demo"></p>
+    <p><button id="login_button">Sign In</button></p>
+    <div id="login_err"></div>
+  </div>
+  
   <div id="map">map window</div>
   <div id="paperdoll">paperdoll window</div>
   <div id="trade">trade window</div>
+  
+  
+  <div id="compass">compass window</div>
+
+  
+<div style="position:relative;width:267px;height:25px;overflow:hidden;">
+<div style="position:absolute;top:-276px;left:-5px">
+<iframe width="300" height="300" 
+  src="https://www.youtube.com/embed/jiwuQ6UHMQg?rel=0">
+</iframe>
+</div>
+</div>
+
+
+<!-- @TODO: check out freesound.org first
+<audio controls autoplay>
+  <source src="horse.ogg" type="audio/ogg">
+  <source src="horse.mp3" type="audio/mpeg">
+  <source src="horse.wav" type="audio/wav">
+  Your browser does not support the audio element.
+</audio> -->
+ 
+  
+  
 </div>
 </body>
 </html>
