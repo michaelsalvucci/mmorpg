@@ -3,15 +3,17 @@ var mysql = require('mysql');
 
 var express = require('express');
 var app = express();
-//var app = require('express')();
+//var app = require('express')();  // can't use this shorthand because of /images/backgrounds below
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var onlineClients = {};
-var http = require('http').Server(app);
+var http = require('http').Server(app);  // note: http is a node core module, so it does not have to be installed
 
 // This creates a pool we can use to mimic a persistent connection
-mysqlPool = mysql.createPool({host:"127.0.0.1", user:"root", password:"", database:"mmorpg", multipleStatements:true});
+var pool = mysql.createPool({connectionLimit:250, host:"127.0.0.1", user:"root", password:"", database:"mmorpg", multipleStatements:true});
+
+//var util = require('util');  // useful for debugging
 
 var port = 1337;
 var ip = "192.168.0.52";
@@ -29,6 +31,11 @@ app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/st
 
 app.use('/images/backgrounds', express.static(__dirname + "/images/backgrounds"));
 
+
+// General functions
+function getTimestamp() {
+  return '[' + new Date().toUTCString() + ']';
+}
 
 // on server started we can load our client html page
 app.get("/", function (req, res) {
@@ -60,12 +67,39 @@ io.on('connection', function(socket){
     var parsed = JSON.parse(msg);
     console.log('email:' + parsed.email + ' password:' + parsed.password);
 
-    // @TODO:  then i need to do a mysql lookup to see if the information is correct
+    // then i need to do a mysql lookup to see if the information is correct
     // if it is correct, then log them in.
-    var response = "pass";
-    // if not, send them a failed message.
-    var response = "fail";
-    io.emit('login response', response);
+    exports.getPassword = (function(email, callback) {
+      pool.getConnection(function(err, connection) {
+        if(err) { console.log(err); callback(true); return; }
+        var sql = "SELECT password FROM users WHERE email = " + mysql.escape(email) + " LIMIT 1";
+        connection.query(sql, [], function(err, results) {
+          connection.release(); // always put connection back in pool after last query
+          if(err) { 
+            console.log('err='+err);
+            callback(true); // this should probably be set to false
+            return;  // don't think i need this
+          } else {
+            //console.log('results='+util.inspect(results)); // useful for debugging
+            //console.log('results = ' + results[0].password);
+            callback(results[0].password);
+          }
+        });
+      });
+    });
+    exports.getPassword(parsed.email, function(result) {
+      if(result == parsed.password) {
+        var response = "pass";
+        //var now = new Date().getTime();
+       console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login');
+      } else {
+        // if not, send them a failed message.
+        var response = "fail";
+        console.log(getTimestamp() + ' FAILED LOGIN user ' + parsed.email + ' with ' + parsed.password);
+      }
+      //console.log('response = ' + response);
+      io.emit('login response', response);
+    });
   });
 
 
