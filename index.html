@@ -6,6 +6,9 @@
   <script src="vendor/jquery/dist/jquery.min.js"></script>
   
   <script src="/node_modules/socket.io-client/socket.io.js"></script>
+  
+  <script src="/node_modules/three/three.min.js"></script>
+  
   <script src="https://cdn.socket.io/socket.io-1.3.2.js"></script>
   
   <script src="js/playfield.js"></script>
@@ -20,20 +23,32 @@
 
 <body>
 <div id="playfield">
+
   <form>
     <textarea id="menu"></textarea>
   </form>
-  <div id="bank">bank window</div>
   
+  <div id="avatar">avatar window</div>
+  
+  <div id="bank">bank window</div>
+
+  <div id="characterSelect">
+    <div class="characterSelectItem"></div>
+  </div>
+
   <div id="chat">
     <div id="titlebar_chat">CHAT</div>
     <div id="messages" style="height:125px;max-height:125px;overflow-y:auto;padding:2px 2px 20px 2px;"></div>
     <div id="contents_message" style="padding:10px 2px 2px 2px;">
-        <input id="message">
+      <div id="talkTo"></div>
+      <input id="message" style="width:90%;">
     </div>
   </div>
+
+  <div id="debug">
+    debug window - Click the green background, then type one of these commands: b,c,e,i,m,p,t,u
+  </div>
   
-  <div id="debug">debug window - commands: b,c,e,i,l,m,p,t,u</div>
   <div id="email">email window</div>
 
   <div id="inventory">
@@ -64,6 +79,8 @@
   <div id="map">map window</div>
   
   <div id="paperdoll">paperdoll window
+    
+
     <svg id="star-icon" viewBox="0 0 25.1 25" enable-background="new 0 0 25.1 25">
       <defs>
         <path id="star-icon-fill" class="fill" fill-rule="evenodd" clip-rule="evenodd" fill="#dddfd7" d="M12.3,0C12.3,0,12.3,0,12.3,0c0.9,2.3,1.7,4.6,2.5,6.9
@@ -123,7 +140,209 @@
   Your browser does not support the audio element.
 </audio> -->
  
+
+
+
+
+
+
+
+
+<div id="world"></div>
+<!--
+<script>
+var camera, scene, renderer;
+var geometry, material, mesh;
+
+init();
+animate();
+
+function init() {
+
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 10000);
+    camera.position.z = 1000;
+
+    scene = new THREE.Scene();
+
+    geometry = new THREE.BoxGeometry(200, 200, 200);
+    material = new THREE.MeshBasicMaterial({
+        color: 0xff0000,
+        wireframe: true
+    });
+
+    mesh = new THREE.Mesh(geometry, material);
+    scene.add(mesh);
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setSize(window.innerWidth*0.5, window.innerHeight*0.5);
+
+    // document.body.appendChild(renderer.domElement);
+    document.getElementById("world").appendChild(renderer.domElement);
+}
+
+function animate() {
+
+    requestAnimationFrame(animate);
+
+    mesh.rotation.x += 0.01;
+    mesh.rotation.y += 0.02;
+
+    renderer.render(scene, camera);
+
+}
+</script>
+-->
+
+
+<script>
+// set the scene size
+var WIDTH = 400,
+  HEIGHT = 300;
+
+// set some camera attributes
+var VIEW_ANGLE = 45,
+  ASPECT = WIDTH / HEIGHT,
+  NEAR = 0.1,
+  FAR = 10000;
+
+// get the DOM element to attach to
+// - assume we've got jQuery to hand
+var $container = $('#world');
+
+// create a WebGL renderer, camera
+// and a scene
+var renderer = new THREE.WebGLRenderer();
+var camera =
+  new THREE.PerspectiveCamera(
+    VIEW_ANGLE,
+    ASPECT,
+    NEAR,
+    FAR);
+
+var scene = new THREE.Scene();
+
+// add the camera to the scene
+scene.add(camera);
+
+// the camera starts at 0,0,0
+// so pull it back
+camera.position.z = 300;
+
+// start the renderer
+renderer.setSize(WIDTH, HEIGHT);
+
+// attach the render-supplied DOM element
+$container.append(renderer.domElement);
+
+
+
+
+
+
+
+
+// set up the sphere vars
+var radius = 50,
+    segments = 16,
+    rings = 16;
+
+// create a new mesh with
+// sphere geometry - we will cover
+// the sphereMaterial next!
+var sphere = new THREE.Mesh(
+
+  new THREE.SphereGeometry(
+    radius,
+    segments,
+    rings),
+
+  sphereMaterial);
+
   
+  
+// sphere geometry
+//sphere.geometry = 10;
+
+// which contains the vertices and faces
+//sphere.geometry.vertices = 10; // an array
+//sphere.geometry.faces .push( new THREE.face3(0, 1, 2)); // also an array
+
+// its position
+sphere.position = 10, 10, 10; // contains x, y and z
+sphere.rotation = 10, 20, 30; // same
+//sphere.scale = 10; // ... same
+  
+  
+  
+  
+  
+  
+  
+// set the geometry to dynamic
+// so that it allow updates
+sphere.geometry.dynamic = true;
+
+// changes to the vertices
+sphere.geometry.verticesNeedUpdate = true;
+
+// changes to the normals
+sphere.geometry.normalsNeedUpdate = true;
+  
+  
+  
+  
+  
+  
+// add the sphere to the scene
+scene.add(sphere);
+
+
+
+
+
+
+
+
+// create the sphere's material
+var sphereMaterial =
+  new THREE.MeshLambertMaterial(
+    {
+      color: 0xCC0000
+    });
+
+    
+    
+    
+    
+    
+    
+    
+    
+
+// create a point light
+var pointLight =
+  new THREE.PointLight(0xFFFFFF);
+
+// set its position
+pointLight.position.x = 10;
+pointLight.position.y = 50;
+pointLight.position.z = 130;
+
+// add to the scene
+scene.add(pointLight);
+
+
+
+
+
+
+// draw!
+renderer.render(scene, camera);
+
+
+
+</script>
+
   
 </div>
 </body>

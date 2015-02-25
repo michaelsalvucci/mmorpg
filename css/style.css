@@ -19,6 +19,13 @@ root {
   display: block;
 }
 
+#world {
+  background-color: yellow;
+  border: none;
+  position: absolute;
+  z-index: 100;
+}
+
 #playfield textarea#menu {
   background-color: darkcyan;
   border: none;
@@ -27,6 +34,26 @@ root {
   padding: 4px;
   position: absolute;
   z-index: 0;
+}
+
+#avatar {
+  background: url(../images/avatar1.png);
+  margin: 150 0 0 0;
+  position: absolute;
+  height: 200;  
+  width: 200;
+  z-index: 1;
+  
+  /* -webkit-transition: 3s ease-in-out;
+  -moz-transition: 3s ease-in-out;
+  -o-transition: 3s ease-in-out; */
+  transition: 1s ease-in-out;
+  /*transform: rotate(30deg); */
+
+}
+#avatar:hover {
+  /*transform: translate(3em,0);*/
+  transform: translate(3em,6em);
 }
 
 #bank {
@@ -38,12 +65,31 @@ root {
   z-index: 1;
 }
 
+.characterSelectItem {
+  background-color: yellowgreen;
+  float: left;
+  margin: 2px;
+  position: relative;
+  height: 128px;
+  width: 128px;
+  z-index: 2;
+}
+
+#characterSelect {
+  background-color: green;
+  margin: 100 0 0 300;
+  position: absolute;
+  height: 400;  
+  width: 400;
+  z-index: 1;
+}
+
 #chat {
   background-color: orangered;
-  margin: 50 0 0 200;
+  margin: 100 0 0 200;
   position: absolute;
   height: 200;  
-  width: 200;
+  width: 400;
   z-index: 1;
 }
 

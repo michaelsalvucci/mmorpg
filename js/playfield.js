@@ -12,6 +12,30 @@ $(document).ready(function() {
   $('#chat').hide();
   $('#chat').draggable();
 
+  $('#characterSelect').hide();
+  $('#characterSelect').draggable();
+
+  $('#characterSelect').on("characterSelect.load", function(event) {
+    $('#characterSelect').fadeIn(3000);
+    // @TODO: How many characters do i have?
+    // @TODO: Show characters
+    $('.characterSelectItem').replaceWith("\
+      <div class=\"characterSelectItem\"><span class=\"name\">Character One</span></div>\
+      <div class=\"characterSelectItem\"><span class=\"name\">Character Two</span></div>\
+      <div class=\"characterSelectItem\"><span class=\"name\">Character Three</span></div>\
+      <div class=\"characterSelectItem\"><span class=\"name\">Character Four</span></div>\
+      <div class=\"characterSelectItem\"><span class=\"name\">Character Five</span></div>\
+    ");
+    // @TODO: Allow me to select the one I want to play, or go to character creation page
+    
+    // Show this AFTER the user chooses the character
+    $('.characterSelectItem').click( function() {
+      var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
+      $('#debug').append('<div id=\"playerName\">' + playerName + '</div>');
+      $('#playfield').trigger('beamMeUp');  // load the character
+    });
+  });
+
   $('#debug').hide();
   $('#debug').draggable();
 
@@ -32,14 +56,24 @@ $(document).ready(function() {
   $('#paperdoll').hide();
   $('#paperdoll').draggable();
 
+  $('#playfield').on("beamMeUp", function(event) {
+    //alert('beamMeUp,Scotty!' + $('.characterSelectItem').text());
+    $('#characterSelect').hide();
+    $('#world').show();
+  });
+
   $('#trade').hide();
   $('#trade').draggable();
 
+  $('#world').hide();
+  $('#world').draggable();
+
+  // chat
   $('input#message').keyup(function(event) {
     var socket = io();
     var code = event.keyCode || event.which;
     if(code == 13) { // enter key
-      socket.emit('chat message', $('#message').val());
+      socket.emit('chat message', '[' + $('#playerName').text() + '] ' + $('#message').val());
       $('#message').val('');  // clear out the data entry field
       $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
     }
@@ -70,8 +104,9 @@ $(document).ready(function() {
       $('#login_err').html('SUCCESS!');
       // hide the login window
       $('#login').hide();
-      // @TODO: Show the HELP Menu or CHARACTER SELECT PAGE???
+      // Show Help and Character Select pages
       $('#debug').fadeIn(3000);
+      $('#characterSelect').trigger('characterSelect.load');  // load the character select page
     }
     if(msg == "fail") { 
       // show the login window
@@ -125,9 +160,10 @@ $(document).ready(function() {
       $("#inventory").toggle();
     }
 
-    if(code == 76 || code == 108) {  // l or L key pressed
-      $("#login").toggle();
-    }
+//disabled
+//    if(code == 76 || code == 108) {  // l or L key pressed
+//      $("#login").toggle();
+//    }
 
     if(code == 77 || code == 109) {  // m or M key pressed
       $("#map").toggle();

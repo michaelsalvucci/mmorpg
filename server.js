@@ -19,17 +19,22 @@ var port = 1337;
 var ip = "192.168.0.52";
 //server.listen(port, ip);
 
+var THREE = require('three');
+
 //var socket = require('socket.io-client')(ip);
 var io = require('socket.io')(http);
 
 app.get('/vendor/jquery/dist/jquery.min.js', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.js");});
 app.get('/node_modules/socket.io-client/socket.io.js', function (req, res) {res.sendFile(__dirname + "/node_modules/socket.io-client/socket.io.js");});
+app.get('/node_modules/three/three.min.js', function (req, res) {res.sendFile(__dirname + "/node_modules/three/three.min.js");});
+
 
 //var playfield = require("./js/playfield.js");
 app.get('/js/playfield.js', function (req, res) {res.sendFile(__dirname + "/js/playfield.js");});
 app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/style.css");});
 
 app.use('/images/backgrounds', express.static(__dirname + "/images/backgrounds"));
+app.use('/images', express.static(__dirname + "/images"));
 
 
 // General functions
@@ -116,6 +121,7 @@ io.on('connection', function(socket){
     // negative x or y coordinate, to set it to zero
     
     // @TODO:  THIS DOES NOT WORK PROPERLY
+    //         Need to grab the values and save them to the db
     //var obj = JSON.parse(msg);
     //console.log('X:' + obj.x + ' Y:' + obj.y);
 
