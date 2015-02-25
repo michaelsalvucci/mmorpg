@@ -6,6 +6,8 @@ $(document).ready(function() {
 
   var socket = io();  // used for chat, login, etc.
 
+$('#bkgd').show();
+
   $('#bank').hide();
   $('#bank').draggable();
 
@@ -150,6 +152,17 @@ $(document).ready(function() {
       }
       socket.emit('turn right', compass);
       $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
+
+      // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
+      // @TODO: And, we've got 90 degrees to get to the next full screen of the background image
+      // @TODO: And, since each press of the d key is 45 degrees for now...
+      // @TODO: And, since moving to the right, means a negative shift in background position....
+      // @TODO: We need to shift things by (45/90)*1280*-1= -640px
+      var backgroundPos = $('#world').css('backgroundPositionX').replace(/[^0-9-]/g, ''); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters
+      backgroundPos = backgroundPos - 640;
+      //alert(backgroundPos);
+      $('#world').css('backgroundPositionX', backgroundPos + 'px');
+
     }
 
     if(code == 69 || code == 101) {  // e or E key pressed

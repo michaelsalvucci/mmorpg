@@ -12,37 +12,47 @@
 */
 
 html {
-  background-color: darkcyan;  /* fixes page edge */
+  /*background-color: darkcyan;*/  /* fixes page edge */
+
 }
 
 root { 
   display: block;
+
 }
 
 #world {
-  background-color: yellow;
+  /*background-color: red; */
+  background: url('/images/backgrounds/genesis.jpg');
+  background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization */
+  height: 99%;
+  width: 99%;
   border: none;
+  opacity: 0.5; /* @TODO: arbitrary number for now */
   position: absolute;
-  z-index: 100;
+  z-index: 0;
 }
 
 #playfield textarea#menu {
-  background-color: darkcyan;
+  /*background-color: darkcyan;*/
+  background-color: transparent; /* important so the background world picture appears */
   border: none;
   height: 99%;
   width: 99%;
   padding: 4px;
   position: absolute;
-  z-index: 0;
+  z-index: 1;
 }
 
+
+
 #avatar {
-  background: url(../images/avatar1.png);
+  background: url('/images/avatar1.png');
   margin: 150 0 0 0;
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
   
   /* -webkit-transition: 3s ease-in-out;
   -moz-transition: 3s ease-in-out;
@@ -62,7 +72,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 .characterSelectItem {
@@ -72,7 +82,7 @@ root {
   position: relative;
   height: 128px;
   width: 128px;
-  z-index: 2;
+  z-index: 20;
 }
 
 #characterSelect {
@@ -81,7 +91,7 @@ root {
   position: absolute;
   height: 400;  
   width: 400;
-  z-index: 1;
+  z-index: 10;
 }
 
 #chat {
@@ -90,7 +100,7 @@ root {
   position: absolute;
   height: 200;  
   width: 400;
-  z-index: 1;
+  z-index: 10;
 }
 
 #debug {
@@ -99,7 +109,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 #email {
@@ -108,7 +118,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 #inventory {
@@ -117,7 +127,7 @@ root {
   position: absolute;
   height: 200;
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 .each_inventory {
@@ -126,7 +136,7 @@ root {
   position: relative;
   height: 32px;
   width: 32px;
-  z-index: 2;
+  z-index: 20;
 }
 
 #login {
@@ -146,7 +156,7 @@ root {
   
   height: 250px;
   width: 200px;  
-  z-index: 1;
+  z-index: 10;
 }
 
 #map {
@@ -160,7 +170,7 @@ root {
   position: absolute;
   height: 300;  
   width: 300;
-  z-index: 1;
+  z-index: 10;
 }
 
 #paperdoll {
@@ -169,7 +179,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 #trade {
@@ -178,7 +188,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 1;
+  z-index: 10;
 }
 
 #compass {
@@ -187,5 +197,5 @@ root {
   position: absolute;
   height: 50;  
   width: 400;
-  z-index: 1;
+  z-index: 10;
 }
