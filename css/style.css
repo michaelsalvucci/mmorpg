@@ -25,6 +25,7 @@ root {
   /*background-color: red; */
   background: url('/images/backgrounds/genesis.jpg');
   background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization */
+  background-repeat: repeat-x;
   height: 99%;
   width: 99%;
   border: none;
