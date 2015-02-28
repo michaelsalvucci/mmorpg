@@ -6,8 +6,6 @@ $(document).ready(function() {
 
   var socket = io();  // used for chat, login, etc.
 
-$('#bkgd').show();
-
   $('#bank').hide();
   $('#bank').draggable();
 
@@ -34,7 +32,7 @@ $('#bkgd').show();
     $('.characterSelectItem').click( function() {
       var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
       $('#debug').append('<div id=\"playerName\">' + playerName + '</div>');
-      $('#playfield').trigger('beamMeUp');  // load the character
+      $('#playfield').trigger('beamMeUp');  // User chose the character to load by clicking on it
     });
   });
 
@@ -61,6 +59,12 @@ $('#bkgd').show();
   $('#playfield').on("beamMeUp", function(event) {
     //alert('beamMeUp,Scotty!' + $('.characterSelectItem').text());
     $('#characterSelect').hide();
+
+    // 20150225: Since we are about to show the world to the user, we need to load the monsters.
+    // We need to send the zone the character is in, plus the character's x,y - DO WE LEGITIMATELY KNOW THIS HERE?
+    socket.emit('getMonsters'); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+    // Show the world to the user
     $('#world').show();
   });
 
@@ -102,13 +106,17 @@ $('#bkgd').show();
   });
   // login - receiving information from the server
   socket.on('login response', function(msg) {
-    if(msg == "pass") { 
+    if(msg == "pass") {
       $('#login_err').html('SUCCESS!');
+
       // hide the login window
       $('#login').hide();
+
       // Show Help and Character Select pages
       $('#debug').fadeIn(3000);
-      $('#characterSelect').trigger('characterSelect.load');  // load the character select page
+
+      // Load the character select page
+      $('#characterSelect').trigger('characterSelect.load');
     }
     if(msg == "fail") { 
       // show the login window
@@ -183,7 +191,7 @@ $('#bkgd').show();
       $("#inventory").toggle();
     }
 
-//disabled
+//disabled.......  20150225: ANY REASON WHY?
 //    if(code == 76 || code == 108) {  // l or L key pressed
 //      $("#login").toggle();
 //    }
@@ -258,5 +266,3 @@ function helloworld() {
 function test2() {
   alert('test2');
 }
-
-

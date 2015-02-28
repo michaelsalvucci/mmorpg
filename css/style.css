@@ -24,10 +24,10 @@ root {
 #world {
   /*background-color: red; */
   background: url('/images/backgrounds/genesis.jpg');
-  background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization */
+  background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization, so something may need tweaking */
   background-repeat: repeat-x;
   height: 99%;
-  width: 99%;
+  width: 1280px; /* was 99%.  Currently 1280px, but this should be set to the user's browser width' */
   border: none;
   opacity: 0.5; /* @TODO: arbitrary number for now */
   position: absolute;
@@ -49,11 +49,11 @@ root {
 
 #avatar {
   background: url('/images/avatar1.png');
-  margin: 150 0 0 0;
+  margin: 774 0 0 530;
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 30;
   
   /* -webkit-transition: 3s ease-in-out;
   -moz-transition: 3s ease-in-out;
@@ -73,7 +73,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 .characterSelectItem {
@@ -83,7 +83,7 @@ root {
   position: relative;
   height: 128px;
   width: 128px;
-  z-index: 20;
+  z-index: 80;
 }
 
 #characterSelect {
@@ -92,7 +92,7 @@ root {
   position: absolute;
   height: 400;  
   width: 400;
-  z-index: 10;
+  z-index: 70;
 }
 
 #chat {
@@ -101,7 +101,7 @@ root {
   position: absolute;
   height: 200;  
   width: 400;
-  z-index: 10;
+  z-index: 70;
 }
 
 #debug {
@@ -110,7 +110,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 #email {
@@ -119,7 +119,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 #inventory {
@@ -128,7 +128,7 @@ root {
   position: absolute;
   height: 200;
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 .each_inventory {
@@ -137,7 +137,7 @@ root {
   position: relative;
   height: 32px;
   width: 32px;
-  z-index: 20;
+  z-index: 80;
 }
 
 #login {
@@ -157,7 +157,7 @@ root {
   
   height: 250px;
   width: 200px;  
-  z-index: 10;
+  z-index: 70;
 }
 
 #map {
@@ -171,7 +171,7 @@ root {
   position: absolute;
   height: 300;  
   width: 300;
-  z-index: 10;
+  z-index: 70;
 }
 
 #paperdoll {
@@ -180,7 +180,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 #trade {
@@ -189,7 +189,7 @@ root {
   position: absolute;
   height: 200;  
   width: 200;
-  z-index: 10;
+  z-index: 70;
 }
 
 #compass {
@@ -198,5 +198,5 @@ root {
   position: absolute;
   height: 50;  
   width: 400;
-  z-index: 10;
+  z-index: 100;
 }
