@@ -13,7 +13,7 @@ var http = require('http').Server(app);  // note: http is a node core module, so
 // This creates a pool we can use to mimic a persistent connection
 var pool = mysql.createPool({connectionLimit:250, host:"127.0.0.1", user:"root", password:"", database:"mmorpg", multipleStatements:true});
 
-//var util = require('util');  // useful for debugging
+var util = require('util');  // useful for debugging
 
 var port = 1337;
 var ip = "192.168.0.52";
@@ -38,9 +38,69 @@ app.use('/images', express.static(__dirname + "/images"));
 
 
 // General functions
+// getTimestamp() - useful for logging
 function getTimestamp() {
   return '[' + new Date().toUTCString() + ']';
 }
+
+
+//function getMonsters() {
+  // alert('should i have loaded getMonsters'); // WARNING:  node.js cannot send a client-side alert! SO THIS IS THE WRONG PLACE TO DO THIS... JUST NOTATING THE ERR HERE.
+//}
+
+
+
+
+
+// SPAWN WIPE
+pool.getConnection(function(err, connection) {
+  if(err) { console.log(err); return; }
+  var sql = "TRUNCATE TABLE monsterPlants";
+  connection.query(sql, [], function(err, results) {
+    connection.release(); // always put connection back in pool after last query
+    if(err) { 
+      console.log(getTimestamp() + ' Spawn Wipe ERR=' + err);
+    } else {
+      console.log(getTimestamp() + ' Spawn Wipe SUCCESS');
+    }
+  });
+});
+
+
+
+
+// SPAWN INITIALIZE
+pool.getConnection(function(err, connection) {
+  if(err) { console.log(err); return; }
+  var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
+  connection.query(sql, [], function(err, results) {
+    connection.release(); // always put connection back in pool after last query
+    if(err) { 
+      console.log(getTimestamp() + ' FAIL Spawn Initialize1=' + err);
+    } else {
+      console.log(getTimestamp() + ' PASS Spawn Initialize1=' + util.inspect(results)); // useful for debuggging
+      for (var item in results) {
+        var sql = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
+        var query = connection.query(sql, [ results[item]['monsterId']
+, results[item]['zoneId'] 
+, results[item]['xStart'] 
+, results[item]['yStart'] 
+, 0
+, 100
+], function(err, results2) {
+          if(err) {
+            console.log(getTimestamp() + ' err='+err);
+          } else {
+            console.log(getTimestamp() + ' Spawn Initialize2 successful');
+          }
+          console.log(query.sql);
+        });
+      }
+    }
+  });
+});
+
+
 
 // on server started we can load our client html page
 app.get("/", function (req, res) {
@@ -65,6 +125,9 @@ io.on('connection', function(socket){
     io.emit('chat message', msg);
   });
 
+  /////////////////////////////////////////
+  // SIGNIN
+  /////////////////////////////////////////
   socket.on('login', function(msg){
     // now i need to take this msg JSON array and split it into vars:  email and password
     // and show it in the console log
@@ -96,17 +159,41 @@ io.on('connection', function(socket){
       if(result == parsed.password) {
         var response = "pass";
         //var now = new Date().getTime();
-       console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login');
+
+        console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login');
+
+        // DELETE THIS SOMETIME...................
+        //getMonsters(); // Since I passed Sign-up phase, get the monsters!
+        // NOTE:  gonna bypass it here, and require client to send it.
+        //        However, getMonsters() function should do console.log(), or some sort of logging
+        //        for error proofing (ie. After LOGIN, log should show request for getMonsters() )
+        //        DOUBLE WARNING:  HECK, I DO NOT WANT TO GET MONSTERS HERE, SINCE USER NEEDS TO CHOOSE A CHARACTER FIRST!
+        // DELETE THIS SOMETIME...................
+
       } else {
         // if not, send them a failed message.
         var response = "fail";
         console.log(getTimestamp() + ' FAILED LOGIN user ' + parsed.email + ' with ' + parsed.password);
       }
       //console.log('response = ' + response);
-      io.emit('login response', response);
+      io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
     });
   });
 
+
+  socket.on('getMonsters', function(msg) {
+    //
+    // @TODO: 20150225 SQL QUERY TO DB TO GET MONSTERS NEAR CHARACTER
+    //
+    // @TODO: 20150225 REWRITE MONSTERS DIV POSSIBLY HERE?????????????????  IF SO, IT'LL STAGE UP THE MONSTERS ON THE SCREEN
+    //
+  });
+
+
+
+  /////////////////////////////////////////
+  // NAVIGATION
+  /////////////////////////////////////////
 
   socket.on('turn right', function(msg){   // d key pressed
     console.log('turn right: ' + msg);
@@ -137,7 +224,7 @@ io.on('connection', function(socket){
 
 //server.listen(port, ip);
 http.listen(1337, function(){
-  console.log('listening on 1337');
+  console.log('Server is listening on port 1337');
 });
 
-console.log('Server started successfully.');
+console.log('Server started successfully!  BOOYAH!');  // @TODO:  20150225:Should I wrap this line within the http.listen() above?
