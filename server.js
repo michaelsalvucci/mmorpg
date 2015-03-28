@@ -293,6 +293,31 @@ io.on('connection', function(socket){
   });
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
+  // INVENTORY
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  socket.on('reqInventory', function(msg){   // I or i key pressed
+    sessionId = msg;
+    // @TODO:  Right now, we're faking the results, but this needs to be a db lookup
+    console.log('reqInventory: ' + msg);
+      var JSONobj = '['
+          +'{'
+          +'"itemId" : ' + '1' + ','
+          +'"name" : ' + '"Apple"' + ','
+          +'"image" : ' + '"apple.gif"' + ','
+          +'"quantity" : ' + '1'
+          +'},'
+          +'{'
+          +'"itemId" : ' + '1' + ','
+          +'"name" : ' + '"Apple"' + ','
+          +'"image" : ' + '"apple.gif"' + ','
+          +'"quantity" : ' + '1'
+          +'}'
+          +']'
+      ;
+    io.emit('resInventory', JSONobj);
+  });
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // NAVIGATION
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('turn right', function(msg){   // d key pressed

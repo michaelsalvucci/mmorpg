@@ -44,10 +44,15 @@ $(document).ready(function() {
   $('#email').hide();
   $('#email').draggable();
 
+  $('#interactive').hide();
+
   $('#inventory').hide();
   $('#inventory').draggable();
-  //$('#contents_inventory').draggable();
-  $('.each_inventory').draggable();
+  ////$('#contents_inventory').draggable();
+  //$('.each_inventory').draggable();
+  $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});
+
+  $('#landscape').hide();
 
   $('#login').show();
   $('#login').draggable();
@@ -67,6 +72,7 @@ $(document).ready(function() {
     socket.emit('getMonsters'); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Show the world to the user
+    $('#landscape').show();
     $('#world').show();
 
     // Play the audio
@@ -174,6 +180,10 @@ $(document).ready(function() {
     $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
   });
 
+  // Inventory 
+  socket.on('resInventory', function(msg) {
+    console.log(msg);
+  });
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // KEYBOARD EVENTS - KEYPRESS - These are events where the user is pressing and holding the key
@@ -244,6 +254,7 @@ $(document).ready(function() {
     }
 
     if(code == 73 || code == 105) {  // i or I key pressed
+      socket.emit('reqInventory',  window.sessionId );
       $("#inventory").toggle();
     }
 

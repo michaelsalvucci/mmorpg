@@ -122,18 +122,28 @@ root {
   z-index: 70;
 }
 
+#interactive {
+  background-color: yellow;
+  margin: 700 0 0 700;
+  position: absolute;
+  height: 50;
+  width: 200;
+  z-index: 100;
+}
+
 #inventory {
   background-color: brown;
   margin: 500 0 0 300;
   position: absolute;
-  height: 200;
-  width: 200;
+  height: 234; /* (32px * 6 row down) + 18px for the word INVENTORY */
+  width: 180; /* 32px * 5 columns wide */
   z-index: 70;
 }
 
 .each_inventory {
   background-color: yellowgreen;
   margin: 2px;
+  float: left;
   position: relative;
   height: 32px;
   width: 32px;
