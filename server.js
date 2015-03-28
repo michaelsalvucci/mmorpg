@@ -63,7 +63,7 @@ function twoDigits(d) {
  * makes sense.
  **/
 Date.prototype.toMysqlFormat = function() {
-    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+  return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
 };
 function getTimestamp() {
   return new Date().toMysqlFormat(); // DateTime in MySQL format
@@ -79,7 +79,7 @@ function getTimestamp() {
 
 
 
-// SPAWN WIPE
+// SPAWN WIPE - This is a one-time event that occurs when the "node server.js" is run
 pool.getConnection(function(err, connection) {
   if(err) { console.log(err); return; }
   var sql = "TRUNCATE TABLE monsterPlants";
@@ -96,7 +96,7 @@ pool.getConnection(function(err, connection) {
 
 
 
-// SPAWN INITIALIZE
+// SPAWN INITIALIZE - This is a one-time event that occurs when the "node server.js" is run
 pool.getConnection(function(err, connection) {
   if(err) { console.log(err); return; }
   var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
@@ -189,7 +189,7 @@ io.on('connection', function(socket){
         //var response = "pass";
         //var now = new Date().getTime();
 
-        console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login with userId ' + userId);
+        console.log(getTimestamp() + ' \033[32mLOGIN\033[0m ' + parsed.email + ' passed login with userId ' + userId);
 
         // Generate sessionId
         var sessionId = "";
@@ -214,16 +214,13 @@ io.on('connection', function(socket){
           });
         });
         exports.generateSession(userId, function(sessionId) { // the response is the sessionid, or false
-          var response = sessionId;
-          console.log('response1 = ' + response);
-          io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
+          io.emit('login response', sessionId);  // User passed login, so tell him the sessionId
         });
 
       } else {
         // if not, send them a failed message.
         var response = "fail";
-        console.log(getTimestamp() + ' FAILED LOGIN user ' + parsed.email + ' with ' + parsed.password);
-        console.log('response2 = ' + response);
+        console.log(getTimestamp() + ' \033[31mFAILED LOGIN\033[0m user ' + parsed.email + ' with ' + parsed.password);
         io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
       }
     });
@@ -294,6 +291,7 @@ io.on('connection', function(socket){
     // @TODO: Send x,y,z,compass coordinates back to the user
 
     // @TODO: See if there's something to gather and have it show/hide the gathering window
+    // isGatherable(sessionId,x,y,z);
   });
 
 

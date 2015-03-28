@@ -1,5 +1,7 @@
 $(document).ready(function() {
 
+  var sessionId = "fail"; // Not logged in
+
   var compass = 0;
   var x = 0;  // @TODO:  Need to really download their current x coordinate upon login
   var y = 0;  // @TODO:  Need to really download their current y coordinate upon login
@@ -107,8 +109,11 @@ $(document).ready(function() {
   // login - receiving information from the server
   socket.on('login response', function(msg) {
     if(msg != "fail") {
-      // Then, I passed
-      var sessionId = msg;
+      // Then, I passed the login process
+      window.sessionId = msg; // This is a global variable
+
+      //alert(window.sessionId);
+
       $('#login_err').html('SUCCESS!');
 
       // hide the login window
@@ -133,6 +138,43 @@ $(document).ready(function() {
     $('#messages').append(msg + '<br>');
   });
 
+
+  // KEYPRESS - KEYBOARD EVENTS - These are events where the user is pressing and holding the key
+  //                              For example, when turning around, you want the compass to keep moving.
+  $('textarea#menu').keypress(function(event) {
+    var code = event.keyCode || event.which;
+
+    if(code == 68 || code == 100) {  // d or D key pressed
+      console.log(window.sessionId);
+      // turn right
+      compass = compass + 45;
+      if(compass >= 360) {
+        compass = compass - 360;
+      }
+      //socket.emit('turn right', compass);
+
+      // turn right
+      socket.emit('turn right', window.sessionId);
+      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
+
+      // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
+      // @TODO: And, we've got 90 degrees to get to the next full screen of the background image
+      // @TODO: And, since each press of the d key is 45 degrees for now...
+      // @TODO: And, since moving to the right, means a negative shift in background position....
+      // @TODO: We need to shift things by (45/90)*1280*-1= -640px
+      var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters
+      backgroundPos = backgroundPos - 640;
+      //alert(backgroundPos);
+      $('#world').css('backgroundPositionX', backgroundPos + 'px');
+
+    }
+
+
+  });
+  
+
+
+  // KEYUP - KEYBOARD EVENTS
   $('textarea#menu').keyup(function(event) {
     var code = event.keyCode || event.which;
 
@@ -164,26 +206,7 @@ $(document).ready(function() {
       $("#chat").toggle();  // simply toggles the visibility of the element
     }
 
-    if(code == 68 || code == 100) {  // d or D key pressed
-      // turn right
-      compass = compass + 45;
-      if(compass >= 360) {
-        compass = compass - 360;
-      }
-      socket.emit('turn right', compass);
-      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
 
-      // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
-      // @TODO: And, we've got 90 degrees to get to the next full screen of the background image
-      // @TODO: And, since each press of the d key is 45 degrees for now...
-      // @TODO: And, since moving to the right, means a negative shift in background position....
-      // @TODO: We need to shift things by (45/90)*1280*-1= -640px
-      var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters
-      backgroundPos = backgroundPos - 640;
-      //alert(backgroundPos);
-      $('#world').css('backgroundPositionX', backgroundPos + 'px');
-
-    }
 
     if(code == 69 || code == 101) {  // e or E key pressed
       $("#email").toggle();
