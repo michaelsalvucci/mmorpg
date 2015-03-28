@@ -129,6 +129,53 @@ pool.getConnection(function(err, connection) {
 
 
 
+
+// DATABASE FUNCTIONS
+exports.getUserCoordinates = (function(sessionId, callback) {
+  console.log('sessionId:' + sessionId);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(true); return; }
+    var sql = "SELECT x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log('err='+err);
+        callback(true); // this should probably be set to false
+        return;  // don't think i need this
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('results1='+util.inspect(results)); // useful for debugging
+        console.log('results2= ' + results[0].x);
+        callback(results[0].x, results[0].y, results[0].z, results[0].c);
+      }
+    });
+  });
+});
+exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
+  console.log('exports.setUserCoordinates sessionId:' + sessionId + 'x=' + x + 'y=' + y + 'z=' + z + 'c=' + c);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(true); return; }
+    var sql = "UPDATE sessions SET x=" + mysql.escape(x) + ", y=" + mysql.escape(y) + ", z = " + mysql.escape(z) + ", c = " + mysql.escape(c) + " WHERE id = " + mysql.escape(sessionId);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log('err='+err);
+        callback(false);
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('exports.setUserCoordinates results='+util.inspect(results)); // useful for debugging
+        callback(sessionId, x, y, z, c);
+      }
+    });
+  });
+});
+
+
+
+
+
+
+
 // on server started we can load our client html page
 app.get("/", function (req, res) {
     res.sendFile(__dirname + "/index.html");
@@ -275,29 +322,65 @@ io.on('connection', function(socket){
   // NAVIGATION
   /////////////////////////////////////////
 
-  //OLD WAY:
-//  socket.on('turn right', function(msg){   // d key pressed
-//    console.log('turn right: ' + msg);
-//  });
-  //NEW WAY:
   socket.on('turn right', function(msg){   // d key pressed
+    sessionId = msg;
     console.log('turn right: ' + msg);
-    // @TODO: SELECT the user's coordinates x,y,z,compass based on their characterId (or possibly their sessionId)
-
-    // @TODO: Calculate the change in coordinates
-
-    // @TODO: UPDATE the user's coordinates in the db
-
-    // @TODO: Send x,y,z,compass coordinates back to the user
-
-    // @TODO: See if there's something to gather and have it show/hide the gathering window
-    // isGatherable(sessionId,x,y,z);
+    // SELECT the user's coordinates x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+      // Calculate the change in coordinates
+      var c = c + 45;
+      if(c >= 360) {  // If the compass is greater than 360 degrees
+        c = c - 360;  // then subtract 360 degrees from the compass
+      }
+      // UPDATE the user's coordinates in the db
+      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      });
+      // Send x,y,z,c coordinates back to the user
+      var JSONobj = '{'
+        +'"x" : ' + x + ','
+        +'"y" : ' + y + ','
+        +'"z" : ' + z + ','
+        +'"c" : ' + c
+        +'}';
+      io.emit('resTurnRight', JSONobj);
+      // @TODO: See if there's something to gather and have it show/hide the gathering window
+      // isGatherable(sessionId,x,y,z);
+    });
   });
 
 
-  socket.on('turn left', function(msg){    // a key pressed
+  socket.on('turn left', function(msg){   // d key pressed
+    sessionId = msg;
     console.log('turn left: ' + msg);
+    // SELECT the user's coordinates x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+      // Calculate the change in coordinates
+      var c = c - 45;
+      if(c < 0) {     // if compass is less than 0 degrees
+        c = c + 360;  // then add 360 degrees to it
+      }
+      // UPDATE the user's coordinates in the db
+      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      });
+      // Send x,y,z,c coordinates back to the user
+      var JSONobj = '{'
+        +'"x" : ' + x + ','
+        +'"y" : ' + y + ','
+        +'"z" : ' + z + ','
+        +'"c" : ' + c
+        +'}';
+      io.emit('resTurnLeft', JSONobj);
+      // @TODO: See if there's something to gather and have it show/hide the gathering window
+      // isGatherable(sessionId,x,y,z);
+    });
   });
+
+
+
 
   socket.on('walk forward', function(msg){    // w key pressed
     // @TODO: do error checking here, such as if they sent a 

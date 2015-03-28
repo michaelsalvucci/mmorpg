@@ -138,24 +138,31 @@ $(document).ready(function() {
     $('#messages').append(msg + '<br>');
   });
 
+  // Response from server on Turn Right request
+  socket.on('resTurnRight', function(msg) {
+    console.log(msg);
+    var obj = $.parseJSON(msg);
+    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+  });
 
-  // KEYPRESS - KEYBOARD EVENTS - These are events where the user is pressing and holding the key
-  //                              For example, when turning around, you want the compass to keep moving.
+  // Response from server on Turn Left request
+  socket.on('resTurnLeft', function(msg) {
+    console.log(msg);
+    var obj = $.parseJSON(msg);
+    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+  });
+
+  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // KEYBOARD EVENTS - KEYPRESS - These are events where the user is pressing and holding the key
+  //                              For example, when turning around, you want the compass to keep moving,
+  //                              and NOT force the user to press the key to turn every time.
   $('textarea#menu').keypress(function(event) {
     var code = event.keyCode || event.which;
 
     if(code == 68 || code == 100) {  // d or D key pressed
-      console.log(window.sessionId);
-      // turn right
-      compass = compass + 45;
-      if(compass >= 360) {
-        compass = compass - 360;
-      }
-      //socket.emit('turn right', compass);
-
+      //console.log(window.sessionId);
       // turn right
       socket.emit('turn right', window.sessionId);
-      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
 
       // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
       // @TODO: And, we've got 90 degrees to get to the next full screen of the background image
@@ -166,26 +173,16 @@ $(document).ready(function() {
       backgroundPos = backgroundPos - 640;
       //alert(backgroundPos);
       $('#world').css('backgroundPositionX', backgroundPos + 'px');
-
     }
-
-
-  });
-  
-
-
-  // KEYUP - KEYBOARD EVENTS
-  $('textarea#menu').keyup(function(event) {
-    var code = event.keyCode || event.which;
 
     if(code == 65 || code == 97) {  // a or A key pressed
       // turn left
-      compass = compass - 45;
-      if(compass < 0) {
-        compass = compass + 360;
-      }
-      socket.emit('turn left', compass);
-      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
+//      compass = compass - 45;
+//      if(compass < 0) {
+//        compass = compass + 360;
+//      }
+      socket.emit('turn left', window.sessionId);
+//      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
 
       // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
       // @TODO: And, we've got 90 degrees to get to the previous full screen of the background image
@@ -197,6 +194,15 @@ $(document).ready(function() {
       //alert(backgroundPos);
       $('#world').css('backgroundPositionX', backgroundPos + 'px');
     }
+  });
+  
+
+
+  // KEYBOARD EVENTS - KEYUP
+  $('textarea#menu').keyup(function(event) {
+    var code = event.keyCode || event.which;
+
+
 
     if(code == 66 || code == 98) {  // b or B key pressed
       $("#bank").toggle();  // simply toggles the visibility of the element
