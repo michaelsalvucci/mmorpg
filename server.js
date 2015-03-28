@@ -186,7 +186,7 @@ io.on('connection', function(socket){
       console.log('DEBUG5 result='+userId); // useful for debugging
       console.log('DEBUG6 result='+realPassword); // useful for debugging
       if(realPassword == parsed.password) {
-        var response = "pass";
+        //var response = "pass";
         //var now = new Date().getTime();
 
         console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login with userId ' + userId);
@@ -213,17 +213,19 @@ io.on('connection', function(socket){
             });
           });
         });
-        exports.generateSession(userId, function(response) { // the response is the sessionid, or false
-          // don't have to do anything here.  just collecting the response for later.
+        exports.generateSession(userId, function(sessionId) { // the response is the sessionid, or false
+          var response = sessionId;
+          console.log('response1 = ' + response);
+          io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
         });
 
       } else {
         // if not, send them a failed message.
         var response = "fail";
         console.log(getTimestamp() + ' FAILED LOGIN user ' + parsed.email + ' with ' + parsed.password);
+        console.log('response2 = ' + response);
+        io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
       }
-      //console.log('response = ' + response);
-      io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
     });
   });
 

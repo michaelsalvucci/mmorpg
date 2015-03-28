@@ -106,7 +106,9 @@ $(document).ready(function() {
   });
   // login - receiving information from the server
   socket.on('login response', function(msg) {
-    if(msg == "pass") {
+    if(msg != "fail") {
+      // Then, I passed
+      var sessionId = msg;
       $('#login_err').html('SUCCESS!');
 
       // hide the login window
@@ -117,12 +119,12 @@ $(document).ready(function() {
 
       // Load the character select page
       $('#characterSelect').trigger('characterSelect.load');
-    }
-    if(msg == "fail") { 
+    } else {
+      // msg=='fail'
       // show the login window
       $('#login').show();
       $('#login_err').html('Incorrect Email and/or Password');
-    } 
+    }
   });
 
   // chat functionality
