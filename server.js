@@ -37,11 +37,38 @@ app.use('/images/backgrounds', express.static(__dirname + "/images/backgrounds")
 app.use('/images', express.static(__dirname + "/images"));
 
 
-// General functions
+// GENERAL FUNCTIONS
+
+
+//discontinued... use the new one below
 // getTimestamp() - useful for logging
-function getTimestamp() {
-  return '[' + new Date().toUTCString() + ']';
+//function getTimestamp() {
+//  return '[' + new Date().toUTCString() + ']';
+//}
+
+
+
+/**
+ * You first need to create a formatting function to pad numbers to two digits…
+ **/
+function twoDigits(d) {
+    if(0 <= d && d < 10) return "0" + d.toString();
+    if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+    return d.toString();
 }
+/**
+ * …and then create the method to output the date string as desired.
+ * Some people hate using prototypes this way, but if you are going
+ * to apply this to more than one Date object, having it as a prototype
+ * makes sense.
+ **/
+Date.prototype.toMysqlFormat = function() {
+    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
+function getTimestamp() {
+  return new Date().toMysqlFormat(); // DateTime in MySQL format
+}
+
 
 
 //function getMonsters() {
@@ -140,7 +167,7 @@ io.on('connection', function(socket){
     exports.getPassword = (function(email, callback) {
       pool.getConnection(function(err, connection) {
         if(err) { console.log(err); callback(true); return; }
-        var sql = "SELECT password FROM users WHERE email = " + mysql.escape(email) + " LIMIT 1";
+        var sql = "SELECT id, password FROM users WHERE email = " + mysql.escape(email) + " LIMIT 1";
         connection.query(sql, [], function(err, results) {
           connection.release(); // always put connection back in pool after last query
           if(err) { 
@@ -150,25 +177,45 @@ io.on('connection', function(socket){
           } else {
             //console.log('results='+util.inspect(results)); // useful for debugging
             //console.log('results = ' + results[0].password);
-            callback(results[0].password);
+            callback(results[0].id, results[0].password); // userId, password
           }
         });
       });
     });
-    exports.getPassword(parsed.email, function(result) {
-      if(result == parsed.password) {
+    exports.getPassword(parsed.email, function(userId, realPassword) { // the result from the callback is userId and realPassword
+      console.log('DEBUG5 result='+userId); // useful for debugging
+      console.log('DEBUG6 result='+realPassword); // useful for debugging
+      if(realPassword == parsed.password) {
         var response = "pass";
         //var now = new Date().getTime();
 
-        console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login');
+        console.log(getTimestamp() + ' LOGIN ' + parsed.email + ' passed login with userId ' + userId);
 
-        // DELETE THIS SOMETIME...................
-        //getMonsters(); // Since I passed Sign-up phase, get the monsters!
-        // NOTE:  gonna bypass it here, and require client to send it.
-        //        However, getMonsters() function should do console.log(), or some sort of logging
-        //        for error proofing (ie. After LOGIN, log should show request for getMonsters() )
-        //        DOUBLE WARNING:  HECK, I DO NOT WANT TO GET MONSTERS HERE, SINCE USER NEEDS TO CHOOSE A CHARACTER FIRST!
-        // DELETE THIS SOMETIME...................
+        // Generate sessionId
+        var sessionId = "";
+        var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        // @TODO:  Session ID is only 5 alphanumeric characters right now.  This needs to be increased higher later.
+        for( var i=0; i < 5; i++ ) { sessionId += possible.charAt(Math.floor(Math.random() * possible.length)); }
+
+        // Insert sessionId into db
+        exports.generateSession = (function(userId, callback) {
+          pool.getConnection(function(err, connection) {
+            if(err) { console.log(err); callback(true); return; }
+            var sql = "DELETE FROM sessions WHERE userId = " + mysql.escape(userId) + ";INSERT INTO sessions (id, userId, dt) VALUES (" + mysql.escape(sessionId) + "," + mysql.escape(userId) + "," + mysql.escape(getTimestamp()) + ")";
+            connection.query(sql, [], function(err, results) {
+              connection.release(); // always put connection back in pool after last query
+              if(err) { 
+                console.log('err='+err);
+                callback(false);
+              } else {
+                callback(sessionId);
+              }
+            });
+          });
+        });
+        exports.generateSession(userId, function(response) { // the response is the sessionid, or false
+          // don't have to do anything here.  just collecting the response for later.
+        });
 
       } else {
         // if not, send them a failed message.
@@ -190,14 +237,63 @@ io.on('connection', function(socket){
   });
 
 
+  /////////////////////////////////////////
+  // ATTACK
+  /////////////////////////////////////////
+  socket.on('attack', function(msg){
+    // @TODO: 20150225 SQL QUERY TO DB TO GET MONSTERS NEAR CHARACTER
+
+    // OK, the first problem with this is the client is telling you what their coordinates are, instead of the server already knowing that
+    // so while this may be an first weak attempt at doing an attack, i really need to refactor the entire coordinates handling thingy first
+
+    var parsed = JSON.parse(msg);
+    console.log('x:' + parsed.x + ' y:' + parsed.y);
+    exports.getMonsterId = (function(x, y, callback) {
+      console.log('x:' + x + ' y:' + y);
+      pool.getConnection(function(err, connection) {
+        if(err) { console.log(err); callback(true); return; }
+        var sql = "SELECT id, monsterId, zoneId, x, y, z, hp FROM monsterPlants WHERE x = " + mysql.escape(x) + " LIMIT 1";
+        connection.query(sql, [], function(err, results) {
+          connection.release(); // always put connection back in pool after last query
+          if(err) { 
+            console.log('err='+err);
+            callback(true); // this should probably be set to false
+            return;  // don't think i need this
+          } else {
+            console.log('results1='+util.inspect(results)); // useful for debugging
+            console.log('results2= ' + results[0].x);
+            callback(results[0].hp);
+          }
+        });
+      });
+    });
+    exports.getMonsterId(parsed.x, parsed.y, function(result) {
+      console.log('hereiam=exports.getMonsterId');
+    });
+  });
 
   /////////////////////////////////////////
   // NAVIGATION
   /////////////////////////////////////////
 
+  //OLD WAY:
+//  socket.on('turn right', function(msg){   // d key pressed
+//    console.log('turn right: ' + msg);
+//  });
+  //NEW WAY:
   socket.on('turn right', function(msg){   // d key pressed
     console.log('turn right: ' + msg);
+    // @TODO: SELECT the user's coordinates x,y,z,compass based on their characterId (or possibly their sessionId)
+
+    // @TODO: Calculate the change in coordinates
+
+    // @TODO: UPDATE the user's coordinates in the db
+
+    // @TODO: Send x,y,z,compass coordinates back to the user
+
+    // @TODO: See if there's something to gather and have it show/hide the gathering window
   });
+
 
   socket.on('turn left', function(msg){    // a key pressed
     console.log('turn left: ' + msg);
@@ -213,7 +309,6 @@ io.on('connection', function(socket){
     //console.log('X:' + obj.x + ' Y:' + obj.y);
 
     console.log('walk forward: ' + msg);
-
   });
 
   socket.on('walk backward', function(msg){    // x key pressed

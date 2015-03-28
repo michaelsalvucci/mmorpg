@@ -191,7 +191,7 @@ $(document).ready(function() {
       $("#inventory").toggle();
     }
 
-//disabled.......  20150225: ANY REASON WHY?
+// Disabled 'l' key because the login window appears upon start and is turned off after successful login
 //    if(code == 76 || code == 108) {  // l or L key pressed
 //      $("#login").toggle();
 //    }
@@ -253,6 +253,16 @@ $(document).ready(function() {
       socket.emit('walk backward', JSON.stringify(postData) );
       $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
     }
+
+
+
+    if(code == 49) {  // 1 key pressed
+      //  @TODO: ATTACK EVERYTHING IN RANGE!
+      //sample var postData = { "email": $('#login_email').val(), "password" : $('#login_password').val() }
+      var postData = { "x": x, "y" : y }
+      socket.emit('attack', JSON.stringify(postData) );
+    }
+
 
     $('textarea#menu').val(''); // flush
   });
