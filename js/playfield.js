@@ -68,6 +68,14 @@ $(document).ready(function() {
 
     // Show the world to the user
     $('#world').show();
+
+    // Play the audio
+    $('#audio').replaceWith("\
+      <div id=audio>\
+        <audio autoplay=autoplay>\
+          <source src=audio/crowd.wav type=audio/wav>\
+        </audio>\
+      </div>");
   });
 
   $('#trade').hide();
@@ -223,7 +231,6 @@ $(document).ready(function() {
     var code = event.keyCode || event.which;
 
 
-
     if(code == 66 || code == 98) {  // b or B key pressed
       $("#bank").toggle();  // simply toggles the visibility of the element
     }
@@ -231,8 +238,6 @@ $(document).ready(function() {
     if(code == 67 || code == 99) {  // c or C key pressed
       $("#chat").toggle();  // simply toggles the visibility of the element
     }
-
-
 
     if(code == 69 || code == 101) {  // e or E key pressed
       $("#email").toggle();
@@ -263,12 +268,21 @@ $(document).ready(function() {
       $("#debug").toggle();
     }
 
-
     if(code == 49) {  // 1 key pressed
       //  @TODO: ATTACK EVERYTHING IN RANGE!
       //sample var postData = { "email": $('#login_email').val(), "password" : $('#login_password').val() }
-      var postData = { "x": x, "y" : y }
-      socket.emit('attack', JSON.stringify(postData) );
+      //var postData = { "x": x, "y" : y }
+      //socket.emit('attack', JSON.stringify(postData) );
+      socket.emit('attack',  window.sessionId );
+      $('#audio').replaceWith("\
+        <div id=audio>\
+          <audio autoplay=autoplay>\
+            <source src=audio/pew.wav type=audio/wav>\
+          </audio>\
+          <audio autoplay=autoplay>\
+            <source src=audio/crowd.wav type=audio/wav>\
+          </audio>\
+        </div>");
     }
 
 

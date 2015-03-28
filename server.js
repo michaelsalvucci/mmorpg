@@ -35,7 +35,7 @@ app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/st
 
 app.use('/images/backgrounds', express.static(__dirname + "/images/backgrounds"));
 app.use('/images', express.static(__dirname + "/images"));
-
+app.use('/audio', express.static(__dirname + "/audio")); // allow all audio files to be served
 
 // GENERAL FUNCTIONS
 
@@ -92,9 +92,6 @@ pool.getConnection(function(err, connection) {
     }
   });
 });
-
-
-
 
 // SPAWN INITIALIZE - This is a one-time event that occurs when the "node server.js" is run
 pool.getConnection(function(err, connection) {
@@ -292,36 +289,12 @@ io.on('connection', function(socket){
     // OK, the first problem with this is the client is telling you what their coordinates are, instead of the server already knowing that
     // so while this may be an first weak attempt at doing an attack, i really need to refactor the entire coordinates handling thingy first
 
-    var parsed = JSON.parse(msg);
-    console.log('x:' + parsed.x + ' y:' + parsed.y);
-    exports.getMonsterId = (function(x, y, callback) {
-      console.log('x:' + x + ' y:' + y);
-      pool.getConnection(function(err, connection) {
-        if(err) { console.log(err); callback(true); return; }
-        var sql = "SELECT id, monsterId, zoneId, x, y, z, hp FROM monsterPlants WHERE x = " + mysql.escape(x) + " LIMIT 1";
-        connection.query(sql, [], function(err, results) {
-          connection.release(); // always put connection back in pool after last query
-          if(err) { 
-            console.log('err='+err);
-            callback(true); // this should probably be set to false
-            return;  // don't think i need this
-          } else {
-            console.log('results1='+util.inspect(results)); // useful for debugging
-            console.log('results2= ' + results[0].x);
-            callback(results[0].hp);
-          }
-        });
-      });
-    });
-    exports.getMonsterId(parsed.x, parsed.y, function(result) {
-      console.log('hereiam=exports.getMonsterId');
-    });
+    // NOTE:  THIS DOES NOT WORK AS INTENDED RIGHT NOW
   });
 
-  /////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // NAVIGATION
-  /////////////////////////////////////////
-
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('turn right', function(msg){   // d key pressed
     sessionId = msg;
     console.log('turn right: ' + msg);
@@ -350,7 +323,6 @@ io.on('connection', function(socket){
     });
   });
 
-
   socket.on('turn left', function(msg){   // d key pressed
     sessionId = msg;
     console.log('turn left: ' + msg);
@@ -378,9 +350,6 @@ io.on('connection', function(socket){
       // isGatherable(sessionId,x,y,z);
     });
   });
-
-
-
 
   socket.on('walk forward', function(msg){    // w key pressed
     sessionId = msg;
