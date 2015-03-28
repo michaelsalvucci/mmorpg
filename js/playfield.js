@@ -152,7 +152,22 @@ $(document).ready(function() {
     $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
   });
 
-  ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+  // Response from server on Walk Forward request
+  socket.on('resWalkForward', function(msg) {
+    console.log(msg);
+    var obj = $.parseJSON(msg);
+    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+  });
+
+  // Response from server on Walk Forward request
+  socket.on('resWalkBackward', function(msg) {
+    console.log(msg);
+    var obj = $.parseJSON(msg);
+    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+  });
+
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // KEYBOARD EVENTS - KEYPRESS - These are events where the user is pressing and holding the key
   //                              For example, when turning around, you want the compass to keep moving,
   //                              and NOT force the user to press the key to turn every time.
@@ -163,7 +178,6 @@ $(document).ready(function() {
       //console.log(window.sessionId);
       // turn right
       socket.emit('turn right', window.sessionId);
-
       // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
       // @TODO: And, we've got 90 degrees to get to the next full screen of the background image
       // @TODO: And, since each press of the d key is 45 degrees for now...
@@ -177,13 +191,7 @@ $(document).ready(function() {
 
     if(code == 65 || code == 97) {  // a or A key pressed
       // turn left
-//      compass = compass - 45;
-//      if(compass < 0) {
-//        compass = compass + 360;
-//      }
       socket.emit('turn left', window.sessionId);
-//      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
-
       // @TODO: We're using a fixed screen width of 1280px during testing.  THIS NEEDS TO BE BASED ON USER'S SCREEN WIDTH, NOT A FIXED 1280px
       // @TODO: And, we've got 90 degrees to get to the previous full screen of the background image
       // @TODO: And, since each press of the a key is -45 degrees for now...
@@ -194,10 +202,22 @@ $(document).ready(function() {
       //alert(backgroundPos);
       $('#world').css('backgroundPositionX', backgroundPos + 'px');
     }
+
+    if(code == 87 || code == 119) {  // w or W key pressed
+      // walk forward
+      socket.emit('walk forward', window.sessionId );
+    }
+
+    if(code == 88 || code == 120) {  // x or X key pressed
+      // walk backward
+      socket.emit('walk backward', window.sessionId );
+    }
+
+
   });
   
 
-
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // KEYBOARD EVENTS - KEYUP
   $('textarea#menu').keyup(function(event) {
     var code = event.keyCode || event.which;
@@ -242,49 +262,6 @@ $(document).ready(function() {
     if(code == 85 || code == 117) {  // u or U key pressed
       $("#debug").toggle();
     }
-
-    if(code == 87 || code == 119) {  // w or W key pressed
-      // walk forward
-      if(compass < 90 || compass > 270) {
-        y++;
-      }
-      if(compass > 90 && compass < 270) {
-        y--;
-      }
-      if(compass > 0 && compass < 180) {
-        x++;
-      }
-      if(compass > 180 && compass < 360) {
-        x--;
-      }
-      var postData = [
-        { "x": x, "y" : y }
-      ]
-      socket.emit('walk forward', JSON.stringify(postData) );
-      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
-    }
-
-    if(code == 88 || code == 120) {  // x or X key pressed
-      // walk backward
-      if(compass < 90 || compass > 270) {
-        y--;
-      }
-      if(compass > 90 && compass < 270) {
-        y++;
-      }
-      if(compass > 0 && compass < 180) {
-        x--;
-      }
-      if(compass > 180 && compass < 360) {
-        x++;
-      }
-      var postData = [
-        { "x": x, "y" : y }
-      ]
-      socket.emit('walk backward', JSON.stringify(postData) );
-      $('#compass').html('X:' + x + ' Y:' + y + ' C:' + compass);
-    }
-
 
 
     if(code == 49) {  // 1 key pressed

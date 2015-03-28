@@ -383,19 +383,75 @@ io.on('connection', function(socket){
 
 
   socket.on('walk forward', function(msg){    // w key pressed
-    // @TODO: do error checking here, such as if they sent a 
-    // negative x or y coordinate, to set it to zero
-    
-    // @TODO:  THIS DOES NOT WORK PROPERLY
-    //         Need to grab the values and save them to the db
-    //var obj = JSON.parse(msg);
-    //console.log('X:' + obj.x + ' Y:' + obj.y);
-
+    sessionId = msg;
     console.log('walk forward: ' + msg);
+    // SELECT the user's coordinates x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+      // Calculate the change in coordinates
+      if(c < 90 || c > 270) {
+        y++;
+      }
+      if(c > 90 && c < 270) {
+        y--;
+      }
+      if(c > 0 && c < 180) {
+        x++;
+      }
+      if(c > 180 && c < 360) {
+        x--;
+      }
+      // UPDATE the user's coordinates in the db
+      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      });
+      // Send x,y,z,c coordinates back to the user
+      var JSONobj = '{'
+        +'"x" : ' + x + ','
+        +'"y" : ' + y + ','
+        +'"z" : ' + z + ','
+        +'"c" : ' + c
+        +'}';
+      io.emit('resWalkForward', JSONobj);
+      // @TODO: See if there's something to gather and have it show/hide the gathering window
+      // isGatherable(sessionId,x,y,z);
+    });
   });
 
   socket.on('walk backward', function(msg){    // x key pressed
+    sessionId = msg;
     console.log('walk backward: ' + msg);
+    // SELECT the user's coordinates x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+      // Calculate the change in coordinates
+      if(c < 90 || c > 270) {
+        y--;
+      }
+      if(c > 90 && c < 270) {
+        y++;
+      }
+      if(c > 0 && c < 180) {
+        x--;
+      }
+      if(c > 180 && c < 360) {
+        x++;
+      }
+      // UPDATE the user's coordinates in the db
+      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      });
+      // Send x,y,z,c coordinates back to the user
+      var JSONobj = '{'
+        +'"x" : ' + x + ','
+        +'"y" : ' + y + ','
+        +'"z" : ' + z + ','
+        +'"c" : ' + c
+        +'}';
+      io.emit('resWalkBackward', JSONobj);
+      // @TODO: See if there's something to gather and have it show/hide the gathering window
+      // isGatherable(sessionId,x,y,z);
+    });
   });
 
 });
