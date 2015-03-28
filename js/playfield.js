@@ -8,7 +8,14 @@ $(document).ready(function() {
 
   var socket = io();  // used for chat, login, etc.
 
+
+  // These two lines diable the browser's scrollbars
+  document.documentElement.style.overflow = 'hidden';
+  document.body.scroll = "no";
+
+
   $('#bank').hide();
+  $('#bank').resizable();
   $('#bank').draggable();
 
   $('#chat').hide();
@@ -50,7 +57,7 @@ $(document).ready(function() {
   $('#inventory').draggable();
   ////$('#contents_inventory').draggable();
   //$('.each_inventory').draggable();
-  $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});
+  $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
 
   $('#landscape').hide();
 

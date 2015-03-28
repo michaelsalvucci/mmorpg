@@ -135,14 +135,13 @@ exports.getUserCoordinates = (function(sessionId, callback) {
     var sql = "SELECT x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
-      if(err) { 
+      if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
         console.log('err='+err);
         callback(true); // this should probably be set to false
         return;  // don't think i need this
         // @TODO: Log the character out, and add a console abort message
       } else {
         console.log('results1='+util.inspect(results)); // useful for debugging
-        console.log('results2= ' + results[0].x);
         callback(results[0].x, results[0].y, results[0].z, results[0].c);
       }
     });

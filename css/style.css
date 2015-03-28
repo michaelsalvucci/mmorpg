@@ -12,13 +12,13 @@
 */
 
 html {
-  /*background-color: darkcyan;*/  /* fixes page edge */
+  /* background-color: yellow; */ /* fixes page edge */
+
 
 }
 
 root { 
   display: block;
-
 }
 
 #world {
@@ -26,7 +26,13 @@ root {
   background: url('/images/backgrounds/genesis.jpg');
   background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization, so something may need tweaking */
   background-repeat: repeat-x;
-  height: 99%;
+height: 100%;
+margin: -10px;
+padding: -10px;
+/* background-size: cover;
+-webkit-background-size: cover;
+-moz-background-size: cover;
+-o-background-size: cover;*/
   width: 1280px; /* was 99%.  Currently 1280px, but this should be set to the user's browser width' */
   border: none;
   opacity: 0.5; /* @TODO: arbitrary number for now */
@@ -37,10 +43,12 @@ root {
 #playfield textarea#menu {
   /*background-color: darkcyan;*/
   background-color: transparent; /* important so the background world picture appears */
+  opacity: 0.5; /* useful for hiding what's being typed in the menu */
   border: none;
-  height: 99%;
-  width: 99%;
-  padding: 4px;
+  height: 100%;
+  width: 100%;
+  margin: -6px;
+  padding: 0;
   position: absolute;
   z-index: 1;
 }
@@ -97,10 +105,10 @@ root {
 
 #chat {
   background-color: orangered;
-  margin: 100 0 0 200;
+  margin: 10% 0 0 20%;
   position: absolute;
-  height: 200;  
-  width: 400;
+  height: 21%;  
+  width: 40%;
   z-index: 70;
 }
 
@@ -133,10 +141,12 @@ root {
 
 #inventory {
   background-color: brown;
-  margin: 500 0 0 300;
+  margin: 500px 0 0 300px;
   position: absolute;
-  height: 234; /* (32px * 6 row down) + 18px for the word INVENTORY */
-  width: 180; /* 32px * 5 columns wide */
+  height: 234px; /* (32px * 6 row down) + 18px for the word INVENTORY */
+  width: 200px; /* 32px * 5 columns wide + 20px for scroll */
+  max-height: 468px;
+  overflow-y: scroll;
   z-index: 70;
 }
 
