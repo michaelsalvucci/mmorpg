@@ -221,13 +221,13 @@ background-color: lightyellow; /* remove later */
   
   margin: 10 0 0 700;
   position: absolute;
-  height: 300;  
+  height: 200;  
   width: 300;
   z-index: 70;
 }
 
 #paperdoll {
-  background-color: purple;
+  background-color: yellow;
   margin: 300 0 0 300;
   position: absolute;
   height: 200;  

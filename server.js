@@ -16,9 +16,10 @@ var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "roo
 var util = require('util');  // useful for debugging
 
 // 3 lines required for executing a command line (required for speech synthesis)
-var sys = require('sys');
-var exec = require('child_process').exec;
-function puts(error, stdout, stderr) { sys.puts(stdout) }
+//var sys = require('sys');
+//var exec = require('child_process').exec;
+//function puts(error, stdout, stderr) { sys.puts(stdout) }
+var execSync = require("exec-sync");
 
 var port = 1337;
 var ip = "192.168.0.52";
@@ -225,8 +226,10 @@ exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
 exports.speak = (function(firstName,lastName,filename,prefix,callback) {
   var string = prefix.concat('\\ ').concat(firstName).concat('\\ ').concat(lastName);
   console.log('string222=' + string);
-  exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
+  // exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
   //console.log('exports.speak=' + prefix + firstName + lastName + filename);
+  //console.log('puts=' + puts);
+  execSync("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
   callback(filename);
 });
 
@@ -388,13 +391,12 @@ io.on('connection', function(socket){
     console.log('reqSpeakMyName=' + sessionId + ' ' + charId);
     exports.getSpeakMyName(sessionId, charId, function(firstName, lastName) {
       console.log('getSpeakMyName firstName=' + firstName + ' lastName=' + lastName);
-
       var filename = "dynamic/" + sessionId + "-" + charId + ".wav";
       console.log('filename=' + filename);
-        exports.speak(firstName, lastName, filename, prefix='Welcome', function(filename) {
-          console.log(prefix + firstName + lastName + 'ran this function faithfully.  Here is the file:' + filename);
-          io.emit('audioPlay', filename);
-        });
+      exports.speak(firstName, lastName, filename, prefix='Welcome', function(filename) {
+        console.log(prefix + firstName + lastName + '. filename=' + filename);
+      });
+      io.emit('audioPlay', filename);
     });
   });
 

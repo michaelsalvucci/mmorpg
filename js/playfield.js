@@ -41,22 +41,14 @@ $(document).ready(function() {
       socket.emit('reqSpeakMyName', window.sessionId, window.charId);
       $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div><div id=\"sessionId\">' + window.sessionId + '</div>');
 
-      // non-keyboard moveup movements......................................
-      socket.on('audioPlay', function(msg) {
-        console.log('asdf');
-        console.log('audioPlay=' + msg);
-        alert(msg);
-        $('#audio').replaceWith("\
-          <div id=audio>\
-            <audio autoplay=autoplay>\
-              <source src=/audio/"+msg+" type=audio/wav>\
-            </audio>\
-          </div>");
-      });
+
 
       $('#playfield').trigger('beamMeUp');  // User chose the character to load by clicking on it
     });
   });
+
+
+
 
   $('#debug').hide();
   $('#debug').draggable();
@@ -90,6 +82,10 @@ $(document).ready(function() {
     // 20150225: Since we are about to show the world to the user, we need to load the monsters.
     // We need to send the zone the character is in, plus the character's x,y - DO WE LEGITIMATELY KNOW THIS HERE?
     socket.emit('getMonsters', null); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+
 
     // Show the world to the user
     $('#landscape').show();
@@ -326,7 +322,16 @@ $(document).ready(function() {
 
 
 
-
+  socket.on('audioPlay', function(msg) {
+    console.log('audioPlay=' + msg);
+//    alert(msg);
+    $('#audio').replaceWith("\
+      <div id=audio>\
+        <audio autoplay=autoplay>\
+          <source src=/audio/"+msg+" type=audio/wav>\
+        </audio>\
+      </div>");
+  });
 
 
 

@@ -5,3 +5,7 @@ server_old.js
 /node_modules/socket.io/node_modules/socket.io-client/node_modules/engine.io-client/node_modules/ws/build/Release/.deps/
 /node_modules/socket.io-client/node_modules/engine.io-client/node_modules/.bin/
 /node_modules/socket.io-client/node_modules/engine.io-client/node_modules/ws/build/Release/.deps/
+/node_modules/exec-sync/node_modules/ffi/node_modules/ref/.node-gyp/
+/node_modules/exec-sync/node_modules/ffi/node_modules/ref/build/Release/.deps/
+/node_modules/exec-sync/node_modules/ffi/.node-gyp/
+/node_modules/exec-sync/node_modules/ffi/build/Release/.deps/
