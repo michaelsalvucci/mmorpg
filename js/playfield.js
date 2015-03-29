@@ -19,6 +19,7 @@ $(document).ready(function() {
   $('#bank').draggable();
 
   $('#chat').hide();
+  $('#chat').resizable();
   $('#chat').draggable();
 
   $('#characterSelect').hide();
@@ -26,21 +27,33 @@ $(document).ready(function() {
 
   $('#characterSelect').on("characterSelect.load", function(event) {
     $('#characterSelect').fadeIn(3000);
-    // @TODO: How many characters do i have?
-    // @TODO: Show characters
-    $('.characterSelectItem').replaceWith("\
-      <div class=\"characterSelectItem\"><span class=\"name\">Character One</span></div>\
-      <div class=\"characterSelectItem\"><span class=\"name\">Character Two</span></div>\
-      <div class=\"characterSelectItem\"><span class=\"name\">Character Three</span></div>\
-      <div class=\"characterSelectItem\"><span class=\"name\">Character Four</span></div>\
-      <div class=\"characterSelectItem\"><span class=\"name\">Character Five</span></div>\
-    ");
-    // @TODO: Allow me to select the one I want to play, or go to character creation page
-    
-    // Show this AFTER the user chooses the character
+    // Show how many characters i have
+    socket.emit('reqCharacterList', window.sessionId);
+  });
+
+  socket.on('resCharacterList', function(msg) {
+    //console.log('resCharacterList=' + msg);
+    $('.characterSelectItem').replaceWith(msg);
+
     $('.characterSelectItem').click( function() {
       var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
-      $('#debug').append('<div id=\"playerName\">' + playerName + '</div>');
+      window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
+      socket.emit('reqSpeakMyName', window.sessionId, window.charId);
+      $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div>');
+
+      // non-keyboard moveup movements......................................
+      socket.on('audioPlay', function(msg) {
+        console.log('asdf');
+        console.log('audioPlay=' + msg);
+        alert(msg);
+        $('#audio').replaceWith("\
+          <div id=audio>\
+            <audio autoplay=autoplay>\
+              <source src=/audio/"+msg+" type=audio/wav>\
+            </audio>\
+          </div>");
+      });
+
       $('#playfield').trigger('beamMeUp');  // User chose the character to load by clicking on it
     });
   });
@@ -192,6 +205,8 @@ $(document).ready(function() {
     console.log(msg);
   });
 
+
+
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // KEYBOARD EVENTS - KEYPRESS - These are events where the user is pressing and holding the key
   //                              For example, when turning around, you want the compass to keep moving,
@@ -303,9 +318,25 @@ $(document).ready(function() {
         </div>");
     }
 
-
     $('textarea#menu').val(''); // flush
   });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 });
 

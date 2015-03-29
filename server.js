@@ -15,6 +15,11 @@ var pool = mysql.createPool({connectionLimit:250, host:"127.0.0.1", user:"root",
 
 var util = require('util');  // useful for debugging
 
+// 3 lines required for executing a command line (required for speech synthesis)
+var sys = require('sys');
+var exec = require('child_process').exec;
+function puts(error, stdout, stderr) { sys.puts(stdout) }
+
 var port = 1337;
 var ip = "192.168.0.52";
 //server.listen(port, ip);
@@ -25,6 +30,7 @@ var THREE = require('three');
 var io = require('socket.io')(http);
 
 app.get('/vendor/jquery/dist/jquery.min.js', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.js");});
+app.get('/vendor/jquery/dist/jquery.min.map', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.map");});
 app.get('/node_modules/socket.io-client/socket.io.js', function (req, res) {res.sendFile(__dirname + "/node_modules/socket.io-client/socket.io.js");});
 app.get('/node_modules/three/three.min.js', function (req, res) {res.sendFile(__dirname + "/node_modules/three/three.min.js");});
 
@@ -35,7 +41,9 @@ app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/st
 
 app.use('/images/backgrounds', express.static(__dirname + "/images/backgrounds"));
 app.use('/images', express.static(__dirname + "/images"));
+app.use('/audio/dynamic', express.static(__dirname + "/audio/dynamic")); // allow all audio/dynamic files to be served
 app.use('/audio', express.static(__dirname + "/audio")); // allow all audio files to be served
+
 
 // GENERAL FUNCTIONS
 
@@ -78,7 +86,9 @@ function getTimestamp() {
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// INITIALIZATION
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // SPAWN WIPE - This is a one-time event that occurs when the "node server.js" is run
 pool.getConnection(function(err, connection) {
   if(err) { console.log(err); return; }
@@ -126,23 +136,74 @@ pool.getConnection(function(err, connection) {
 
 
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // DATABASE FUNCTIONS
-exports.getUserCoordinates = (function(sessionId, callback) {
+///////////////////////////////////////////////////////////////////////////////////////////////////
+exports.getCharacterList = (function(sessionId, callback) {
   console.log('sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(err); callback(true); return; }
-    var sql = "SELECT x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
+    if(err) { console.log(err); callback(false); return; }
+    var sql = "SELECT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName \
+                FROM characters c \
+                LEFT JOIN sessions s \
+                ON  s.userId = c.userId \
+                WHERE s.id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
         console.log('err='+err);
-        callback(true); // this should probably be set to false
-        return;  // don't think i need this
+        callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
         console.log('results1='+util.inspect(results)); // useful for debugging
-        callback(results[0].x, results[0].y, results[0].z, results[0].c);
+        //callback(results[0].charId, results[0].firstName, results[0].lastName);
+        callback(results);
+      }
+    });
+  });
+});
+exports.getCharacterList = (function(sessionId, callback) {
+  console.log('sessionId:' + sessionId);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(false); return; }
+    var sql = "SELECT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName \
+                FROM characters c \
+                LEFT JOIN sessions s \
+                ON  s.userId = c.userId \
+                WHERE s.id = " + mysql.escape(sessionId);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
+        console.log('err='+err);
+        callback(false);
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('results1='+util.inspect(results)); // useful for debugging
+        //callback(results[0].charId, results[0].firstName, results[0].lastName);
+        callback(results);
+      }
+    });
+  });
+});
+exports.getSpeakMyName = (function(sessionId, charId, callback) {
+  console.log('sessionId=' + sessionId + 'charId=' + charId);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(false); }
+    var sql = "SELECT c.firstName AS firstName, c.lastName AS lastName \
+                FROM characters c \
+                LEFT JOIN sessions s \
+                ON  s.userId = c.userId \
+                WHERE s.id = " + mysql.escape(sessionId) + "\
+                AND c.id = " +mysql.escape(charId);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
+        console.log('err='+err);
+        callback(false);
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('results='+util.inspect(results)); // useful for debugging
+        callback(results[0].firstName, results[0].lastName);
       }
     });
   });
@@ -165,7 +226,19 @@ exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
     });
   });
 });
+exports.speak = (function(firstName,lastName,filename,prefix,callback) {
+  console.log('wooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
+  console.log(prefix);
+  console.log(firstName);
+  console.log(lastName);
+  console.log(filename);
 
+  var string = prefix.concat('\\ ').concat(firstName).concat('\\ ').concat(lastName);
+  console.log('string222=' + string);
+  exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
+  console.log('zooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
+  callback(filename);
+});
 
 
 
@@ -226,8 +299,8 @@ io.on('connection', function(socket){
       });
     });
     exports.getPassword(parsed.email, function(userId, realPassword) { // the result from the callback is userId and realPassword
-      console.log('DEBUG5 result='+userId); // useful for debugging
-      console.log('DEBUG6 result='+realPassword); // useful for debugging
+      //console.log('DEBUG5 result='+userId); // useful for debugging
+      //console.log('DEBUG6 result='+realPassword); // useful for debugging
       if(realPassword == parsed.password) {
         //var response = "pass";
         //var now = new Date().getTime();
@@ -258,6 +331,12 @@ io.on('connection', function(socket){
         });
         exports.generateSession(userId, function(sessionId) { // the response is the sessionid, or false
           io.emit('login response', sessionId);  // User passed login, so tell him the sessionId
+
+// This needs to be moved to post-char select
+//exec("/usr/bin/flite 'hello world' -o /var/www/mmorpg/audio/sessionId.wav", puts);
+//io.emit('audioPlay', 'sessionId.wav');
+
+
         });
 
       } else {
@@ -289,6 +368,45 @@ io.on('connection', function(socket){
     // so while this may be an first weak attempt at doing an attack, i really need to refactor the entire coordinates handling thingy first
 
     // NOTE:  THIS DOES NOT WORK AS INTENDED RIGHT NOW
+  });
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // CHARACTER SELECT and CHARACTER-related ACTIVITIES
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  socket.on('reqCharacterList', function(msg){
+    sessionId = msg;
+    console.log('sturn right (this does not look like i want this here): ' + msg);
+    // SELECT the user's coordinates x,y,z,compass based on their sessionId
+    exports.getCharacterList(sessionId, function(results) {  // The callback is sending us results
+      console.log('sResults=' + results);
+      var html="";
+      for (var row in results) {
+        //console.log('row=' + row);
+        //console.log('charId=' + results[row].charId);
+        //console.log('firstName=' + results[row].firstName);
+        //console.log('lastName=' + results[row].lastName);
+        html = html.concat("<div class=\"characterSelectItem\"><span class=\"charId\">" + results[row].charId + "</span><span class=\"name\">" + results[row].firstName + " " + results[row].lastName + "</span></div>");
+        //@TODO: Add functionality to add a character via the store, or show empty slots
+        //       from which the user can choose upon to create a new character.  Basically,
+        //       we're adding onto this html some more options for the user.
+      }
+      io.emit('resCharacterList', html);
+    });
+  });
+
+
+  socket.on('reqSpeakMyName', function(sessionId, charId) {
+    console.log('reqSpeakMyName=' + sessionId + ' ' + charId);
+    exports.getSpeakMyName(sessionId, charId, function(firstName, lastName) {
+      console.log('getSpeakMyName firstName=' + firstName + ' lastName=' + lastName);
+
+      var filename = "dynamic/" + sessionId + "-" + charId + ".wav";
+      console.log('filename=' + filename);
+        exports.speak(firstName, lastName, filename, prefix='Welcome', function(filename) {
+          console.log(prefix + firstName + lastName + 'ran this function faithfully.  Here is the file:' + filename);
+          io.emit('audioPlay', filename);
+        });
+    });
   });
 
   /////////////////////////////////////////////////////////////////////////////////////////////////

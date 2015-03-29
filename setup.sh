@@ -6,3 +6,4 @@ npm install socket.io
 npm install socket.io-client
 npm install util
 npm install three
+sudo apt-get install flite

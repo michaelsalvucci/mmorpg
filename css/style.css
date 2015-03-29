@@ -13,8 +13,6 @@
 
 html {
   /* background-color: yellow; */ /* fixes page edge */
-
-
 }
 
 root { 
@@ -103,14 +101,49 @@ padding: -10px;
   z-index: 70;
 }
 
+
 #chat {
-  background-color: orangered;
+  background-color: lemonchiffon;
   margin: 10% 0 0 20%;
   position: absolute;
   height: 21%;  
   width: 40%;
   z-index: 70;
+  font-family: IM Fell English,serif;
 }
+#titlebar_chat {
+  background-color: gold;
+}
+#messages {
+background-color: lemonchiffon; /* remove later */
+  height:90%;
+  max-height:90%;
+  overflow-y:auto;
+padding:0 0 4% 0;
+width:100%;
+}
+#contents_message {
+background-color: lemonchiffon; /* remove later */
+height: 10%;
+padding: 0%;
+width: 100%;
+}
+#message { /* this is the textarea input bar within the chat window */
+background-color: lightyellow; /* remove later */
+  height: 100%;
+  width:90%;
+}
+/*#chat .ui-resizable { position: relative;}
+#chat .ui-resizable-handle { position: absolute;font-size: 0.1px; display: block; }
+#chat .ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle { display: none; }
+#chat .ui-resizable-n { cursor: n-resize; height: 7px; width: 100%; top: -5px; left: 0; }
+#chat .ui-resizable-s { cursor: s-resize; height: 7px; width: 100%; bottom: -5px; left: 0; }
+#chat .ui-resizable-e { cursor: e-resize; width: 7px; right: -5px; top: 0; height: 100%; }
+#chat .ui-resizable-w { cursor: w-resize; width: 7px; left: -5px; top: 0; height: 100%; }*/
+#chat .ui-resizable-se { cursor: se-resize; width: 22px; height: 12px; right: 2px; bottom: -30px; }
+/*#chat .ui-resizable-sw { cursor: sw-resize; width: 9px; height: 9px; left: -5px; bottom: -5px; }
+#chat .ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
+#chat .ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px;}*/
 
 #debug {
   background-color: orange;
