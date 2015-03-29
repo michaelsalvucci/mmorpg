@@ -39,7 +39,7 @@ $(document).ready(function() {
       var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
       window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
       socket.emit('reqSpeakMyName', window.sessionId, window.charId);
-      $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div>');
+      $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div><div id=\"sessionId\">' + window.sessionId + '</div>');
 
       // non-keyboard moveup movements......................................
       socket.on('audioPlay', function(msg) {
@@ -147,10 +147,9 @@ $(document).ready(function() {
       window.sessionId = msg; // This is a global variable
 
       //alert(window.sessionId);
+      //$('#login_err').html('SUCCESS!');
 
-      $('#login_err').html('SUCCESS!');
-
-      // hide the login window
+      // Hide the login window
       $('#login').hide();
 
       // Show Help and Character Select pages

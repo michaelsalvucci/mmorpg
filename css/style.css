@@ -94,19 +94,18 @@ padding: -10px;
 
 #characterSelect {
   background-color: green;
-  margin: 100 0 0 300;
+  margin: 200 0 0 350;
   position: absolute;
   height: 400;  
   width: 400;
   z-index: 70;
 }
 
-
 #chat {
   background-color: lemonchiffon;
   margin: 10% 0 0 20%;
   position: absolute;
-  height: 21%;  
+  height: 42%;  
   width: 40%;
   z-index: 70;
   font-family: IM Fell English,serif;
@@ -147,9 +146,9 @@ background-color: lightyellow; /* remove later */
 
 #debug {
   background-color: orange;
-  margin: 50 0 0 400;
+  margin: 50 0 0 100;
   position: absolute;
-  height: 200;  
+  height: 300;  
   width: 200;
   z-index: 70;
 }

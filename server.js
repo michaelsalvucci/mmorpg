@@ -11,7 +11,7 @@ var onlineClients = {};
 var http = require('http').Server(app);  // note: http is a node core module, so it does not have to be installed
 
 // This creates a pool we can use to mimic a persistent connection
-var pool = mysql.createPool({connectionLimit:250, host:"127.0.0.1", user:"root", password:"", database:"mmorpg", multipleStatements:true});
+var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "root", password: "", database: "mmorpg", multipleStatements: true});
 
 var util = require('util');  // useful for debugging
 
@@ -139,25 +139,21 @@ pool.getConnection(function(err, connection) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // DATABASE FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-exports.getCharacterList = (function(sessionId, callback) {
+exports.getUserCoordinates = (function(sessionId, callback) {
   console.log('sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(err); callback(false); return; }
-    var sql = "SELECT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName \
-                FROM characters c \
-                LEFT JOIN sessions s \
-                ON  s.userId = c.userId \
-                WHERE s.id = " + mysql.escape(sessionId);
+  if(err) { console.log(err); callback(true); return; }
+    var sql = "SELECT x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
-      if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
+      if((err) || (sessionId == null)) { // NOTE: Testing for sessionId==null might give unintended consequences
         console.log('err='+err);
-        callback(false);
+        callback(true); // this should probably be set to false
+        return; // don't think i need this
         // @TODO: Log the character out, and add a console abort message
       } else {
         console.log('results1='+util.inspect(results)); // useful for debugging
-        //callback(results[0].charId, results[0].firstName, results[0].lastName);
-        callback(results);
+        callback(results[0].x, results[0].y, results[0].z, results[0].c);
       }
     });
   });
@@ -227,16 +223,10 @@ exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
   });
 });
 exports.speak = (function(firstName,lastName,filename,prefix,callback) {
-  //console.log('wooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
-  //console.log(prefix);
-  //console.log(firstName);
-  //console.log(lastName);
-  //console.log(filename);
-
   var string = prefix.concat('\\ ').concat(firstName).concat('\\ ').concat(lastName);
   console.log('string222=' + string);
   exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
-  //console.log('zooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
+  //console.log('exports.speak=' + prefix + firstName + lastName + filename);
   callback(filename);
 });
 
@@ -375,7 +365,6 @@ io.on('connection', function(socket){
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('reqCharacterList', function(msg){
     sessionId = msg;
-    console.log('sturn right (this does not look like i want this here): ' + msg);
     // SELECT the user's coordinates x,y,z,compass based on their sessionId
     exports.getCharacterList(sessionId, function(results) {  // The callback is sending us results
       console.log('sResults=' + results);
