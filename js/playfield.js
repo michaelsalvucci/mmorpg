@@ -34,7 +34,7 @@ $(document).ready(function() {
   socket.on('resCharacterList', function(msg) {
     //console.log('resCharacterList=' + msg);
     $('.characterSelectItem').replaceWith(msg);
-
+//alert('ready');
     $('.characterSelectItem').click( function() {
       var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
       window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
@@ -89,12 +89,12 @@ $(document).ready(function() {
 
     // 20150225: Since we are about to show the world to the user, we need to load the monsters.
     // We need to send the zone the character is in, plus the character's x,y - DO WE LEGITIMATELY KNOW THIS HERE?
-    socket.emit('getMonsters'); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    socket.emit('getMonsters', null); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Show the world to the user
     $('#landscape').show();
     $('#world').show();
-
+    //alert('still here');
     // Play the audio
     $('#audio').replaceWith("\
       <div id=audio>\

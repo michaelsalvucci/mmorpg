@@ -227,16 +227,16 @@ exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
   });
 });
 exports.speak = (function(firstName,lastName,filename,prefix,callback) {
-  console.log('wooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
-  console.log(prefix);
-  console.log(firstName);
-  console.log(lastName);
-  console.log(filename);
+  //console.log('wooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
+  //console.log(prefix);
+  //console.log(firstName);
+  //console.log(lastName);
+  //console.log(filename);
 
   var string = prefix.concat('\\ ').concat(firstName).concat('\\ ').concat(lastName);
   console.log('string222=' + string);
   exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
-  console.log('zooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
+  //console.log('zooooooooohoooooooooooooo' + prefix + firstName + lastName + filename);
   callback(filename);
 });
 
