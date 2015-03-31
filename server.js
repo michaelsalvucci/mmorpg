@@ -7,7 +7,7 @@ var app = express();
 
 var server = require('http').createServer(app);
 var io = require('socket.io')(server);
-var onlineClients = {};
+var onlineClients = 0;
 var http = require('http').Server(app);  // note: http is a node core module, so it does not have to be installed
 
 // This creates a pool we can use to mimic a persistent connection
@@ -19,7 +19,7 @@ var util = require('util');  // useful for debugging
 //var sys = require('sys');
 //var exec = require('child_process').exec;
 //function puts(error, stdout, stderr) { sys.puts(stdout) }
-var execSync = require("exec-sync");
+var execSync = require("exec-sync");  // Synchronous Exec in Node.js
 
 var port = 1337;
 var ip = "192.168.0.52";
@@ -80,9 +80,24 @@ function getTimestamp() {
 
 
 
-//function getMonsters() {
-  // alert('should i have loaded getMonsters'); // WARNING:  node.js cannot send a client-side alert! SO THIS IS THE WRONG PLACE TO DO THIS... JUST NOTATING THE ERR HERE.
-//}
+
+/**
+  * getRandomArbitrary(min, max)
+  * Returns a random number between min (inclusive) and max (exclusive)
+  */
+function getRandomArbitrary(min, max) {
+    return Math.random() * (max - min) + min;
+}
+
+/**
+  * getRandomInt(min, max)
+  * Returns a random integer between min (inclusive) and max (inclusive)
+  * Using Math.round() will give you a non-uniform distribution!
+  */
+function getRandomInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
 
 
 
@@ -144,7 +159,7 @@ exports.getUserCoordinates = (function(sessionId, callback) {
   console.log('sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
   if(err) { console.log(err); callback(true); return; }
-    var sql = "SELECT x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
+    var sql = "SELECT zoneId, x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if((err) || (sessionId == null)) { // NOTE: Testing for sessionId==null might give unintended consequences
@@ -154,7 +169,7 @@ exports.getUserCoordinates = (function(sessionId, callback) {
         // @TODO: Log the character out, and add a console abort message
       } else {
         console.log('results1='+util.inspect(results)); // useful for debugging
-        callback(results[0].x, results[0].y, results[0].z, results[0].c);
+        callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
       }
     });
   });
@@ -177,6 +192,25 @@ exports.getCharacterList = (function(sessionId, callback) {
       } else {
         console.log('results1='+util.inspect(results)); // useful for debugging
         //callback(results[0].charId, results[0].firstName, results[0].lastName);
+        callback(results);
+      }
+    });
+  });
+});
+exports.getMonstersNearMe = (function(sessionId, zoneId, x, y, z, callback) {
+  console.log('exports.getMonstersNearMe sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(false); return; }
+    var sql = "SELECT id, monsterId, hp FROM monsterPlants WHERE zoneId = " + mysql.escape(zoneId) + " AND x = " + mysql.escape(x) + " AND y = " + mysql.escape(y) + " AND z = " + mysql.escape(z) + " AND hp > 0";
+    console.log('sql=' + sql);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log('err='+err);
+        callback(false);
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('exports.getMonstersNearMe results='+util.inspect(results)); // useful for debugging
         callback(results);
       }
     });
@@ -205,11 +239,34 @@ exports.getSpeakMyName = (function(sessionId, charId, callback) {
     });
   });
 });
-exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
-  console.log('exports.setUserCoordinates sessionId:' + sessionId + 'x=' + x + 'y=' + y + 'z=' + z + 'c=' + c);
+/** 
+  * exports.setMonsterPlantsDamage
+  *
+  **/
+exports.setMonsterPlantsDamage = (function(id, hp, damage, callback) {
+  console.log('exports.setMonsterPlantsDamage id:' + id + 'hp=' + hp + 'damage=' + damage);
   pool.getConnection(function(err, connection) {
     if(err) { console.log(err); callback(true); return; }
-    var sql = "UPDATE sessions SET x=" + mysql.escape(x) + ", y=" + mysql.escape(y) + ", z = " + mysql.escape(z) + ", c = " + mysql.escape(c) + " WHERE id = " + mysql.escape(sessionId);
+    var sql = "UPDATE monsterPlants SET hp = " + mysql.escape(hp) + " WHERE id = " + mysql.escape(id);
+    console.log('sql = ' + sql);
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log('err='+err);
+        callback(false);
+        // @TODO: Log the character out, and add a console abort message
+      } else {
+        console.log('exports.setMonsterPlantsDamage results='+util.inspect(results)); // useful for debugging
+        callback(true);
+      }
+    });
+  });
+});
+exports.setUserCoordinates = (function(sessionId, zoneId, x, y, z, c, callback) {
+  console.log('exports.setUserCoordinates sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z + 'c=' + c);
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); callback(true); return; }
+    var sql = "UPDATE sessions SET zoneId=" + mysql.escape(zoneId) + ", x=" + mysql.escape(x) + ", y=" + mysql.escape(y) + ", z = " + mysql.escape(z) + ", c = " + mysql.escape(c) + " WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
@@ -218,17 +275,18 @@ exports.setUserCoordinates = (function(sessionId, x, y, z, c, callback) {
         // @TODO: Log the character out, and add a console abort message
       } else {
         console.log('exports.setUserCoordinates results='+util.inspect(results)); // useful for debugging
-        callback(sessionId, x, y, z, c);
+        callback(sessionId, zoneId, x, y, z, c);
       }
     });
   });
 });
 exports.speak = (function(firstName,lastName,filename,prefix,callback) {
+  // @TODO: If a firstName or lastName has a space in it, we might get an error here, so we might have to rewrite this
+  //        so there is an escaped space within those.
   var string = prefix.concat('\\ ').concat(firstName).concat('\\ ').concat(lastName);
-  console.log('string222=' + string);
+  //console.log('string222=' + string);
   // exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
   //console.log('exports.speak=' + prefix + firstName + lastName + filename);
-  //console.log('puts=' + puts);
   execSync("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
   callback(filename);
 });
@@ -250,7 +308,10 @@ setInterval(function(){
 
 io.on('connection', function(socket){
   console.log('a user connected');
+  onlineClients++;
+
   socket.on('disconnect', function(){
+    onlineClients--;
     console.log('user disconnected');
   });
   socket.on('event', function(){
@@ -325,7 +386,7 @@ io.on('connection', function(socket){
         exports.generateSession(userId, function(sessionId) { // the response is the sessionid, or false
           io.emit('login response', sessionId);  // User passed login, so tell him the sessionId
 
-// This needs to be moved to post-char select
+// This needs to be moved to post-char select. PROBABLY CAN DELETE THIS NOW..............
 //exec("/usr/bin/flite 'hello world' -o /var/www/mmorpg/audio/sessionId.wav", puts);
 //io.emit('audioPlay', 'sessionId.wav');
 
@@ -351,16 +412,45 @@ io.on('connection', function(socket){
   });
 
 
-  /////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // ATTACK
-  /////////////////////////////////////////
-  socket.on('attack', function(msg){
-    // @TODO: 20150225 SQL QUERY TO DB TO GET MONSTERS NEAR CHARACTER
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  socket.on('reqAttack', function(msg){
+    // Get Coordinates based on SessionId
+    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z); // Don't need c
+      // Get the monsters near the user's coordinates
+      exports.getMonstersNearMe(sessionId, zoneId, x, y, z, function(results) { // The callback is sending us results
+        console.log('results='+results);
+        for (var row in results) {
+          console.log('row=' + row);
+          console.log('id=' + results[row].id);
+          console.log('monsterId=' + results[row].monsterId);
+          console.log('hp=' + results[row].hp);
 
-    // OK, the first problem with this is the client is telling you what their coordinates are, instead of the server already knowing that
-    // so while this may be an first weak attempt at doing an attack, i really need to refactor the entire coordinates handling thingy first
+          // Roll die
+          var damage = getRandomInt(0, 50); // 0,50 is min,max damage (a fixed number is used for now during testing)
+          console.log('damage = ' + damage);
+          var newHp = results[row].hp - damage;
 
-    // NOTE:  THIS DOES NOT WORK AS INTENDED RIGHT NOW
+          // Apply damage - for each monster id, send the damage (return 1 if dead), and see if i killed it (ie. loot bag drops)
+          exports.setMonsterPlantsDamage(results[row].id, newHp, damage, function(result) {
+            // simply just updates the hp (even if negative)
+            // Since I don't care about the result callback, I should probably not use a callback here
+          });
+
+          // Is Dead?
+          if( damage >= results[row].hp ) {
+            // Monster is dead - Drop Loot based on monsterId
+            console.log('monster is dead');
+          } else {
+            console.log('monster is still alive');
+          }
+
+          // @TODO: Show damage numbers on screen
+        }
+      });
+    });
   });
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -432,19 +522,20 @@ io.on('connection', function(socket){
     sessionId = msg;
     console.log('turn right: ' + msg);
     // SELECT the user's coordinates x,y,z,compass based on their sessionId
-    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       var c = c + 45;
       if(c >= 360) {  // If the compass is greater than 360 degrees
         c = c - 360;  // then subtract 360 degrees from the compass
       }
       // UPDATE the user's coordinates in the db
-      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
-      // Send x,y,z,c coordinates back to the user
+      // Send zoneId,x,y,z,c coordinates back to the user
       var JSONobj = '{'
+        +'"zoneId" : ' + zoneId + ','
         +'"x" : ' + x + ','
         +'"y" : ' + y + ','
         +'"z" : ' + z + ','
@@ -452,27 +543,28 @@ io.on('connection', function(socket){
         +'}';
       io.emit('resTurnRight', JSONobj);
       // @TODO: See if there's something to gather and have it show/hide the gathering window
-      // isGatherable(sessionId,x,y,z);
+      // isGatherable(sessionId,zoneId,x,y,z);
     });
   });
 
   socket.on('turn left', function(msg){   // d key pressed
     sessionId = msg;
     console.log('turn left: ' + msg);
-    // SELECT the user's coordinates x,y,z,compass based on their sessionId
-    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+    // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(zoneId,x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       var c = c - 45;
       if(c < 0) {     // if compass is less than 0 degrees
         c = c + 360;  // then add 360 degrees to it
       }
       // UPDATE the user's coordinates in the db
-      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
-      // Send x,y,z,c coordinates back to the user
+      // Send zoneId,x,y,z,c coordinates back to the user
       var JSONobj = '{'
+        +'"zoneId" : ' + zoneId + ','
         +'"x" : ' + x + ','
         +'"y" : ' + y + ','
         +'"z" : ' + z + ','
@@ -480,16 +572,16 @@ io.on('connection', function(socket){
         +'}';
       io.emit('resTurnLeft', JSONobj);
       // @TODO: See if there's something to gather and have it show/hide the gathering window
-      // isGatherable(sessionId,x,y,z);
+      // isGatherable(sessionId,zoneId,x,y,z);
     });
   });
 
   socket.on('walk forward', function(msg){    // w key pressed
     sessionId = msg;
     console.log('walk forward: ' + msg);
-    // SELECT the user's coordinates x,y,z,compass based on their sessionId
-    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+    // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       if(c < 90 || c > 270) {
         y++;
@@ -504,11 +596,12 @@ io.on('connection', function(socket){
         x--;
       }
       // UPDATE the user's coordinates in the db
-      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send x,y,z,c coordinates back to the user
       var JSONobj = '{'
+        +'"zoneId" : ' + zoneId + ','
         +'"x" : ' + x + ','
         +'"y" : ' + y + ','
         +'"z" : ' + z + ','
@@ -516,16 +609,16 @@ io.on('connection', function(socket){
         +'}';
       io.emit('resWalkForward', JSONobj);
       // @TODO: See if there's something to gather and have it show/hide the gathering window
-      // isGatherable(sessionId,x,y,z);
+      // isGatherable(sessionId,zoneId,x,y,z);
     });
   });
 
   socket.on('walk backward', function(msg){    // x key pressed
     sessionId = msg;
     console.log('walk backward: ' + msg);
-    // SELECT the user's coordinates x,y,z,compass based on their sessionId
-    exports.getUserCoordinates(sessionId, function(x, y, z, c) {  // The callback is sending us x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + x + y + z + c);
+    // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
+    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       if(c < 90 || c > 270) {
         y--;
@@ -540,11 +633,12 @@ io.on('connection', function(socket){
         x++;
       }
       // UPDATE the user's coordinates in the db
-      exports.setUserCoordinates(sessionId, x, y, z, c, function(result) {  // The callback is sending us x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+      exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
+        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send x,y,z,c coordinates back to the user
       var JSONobj = '{'
+        +'"zoneId" : ' + zoneId + ','
         +'"x" : ' + x + ','
         +'"y" : ' + y + ','
         +'"z" : ' + z + ','
@@ -552,7 +646,7 @@ io.on('connection', function(socket){
         +'}';
       io.emit('resWalkBackward', JSONobj);
       // @TODO: See if there's something to gather and have it show/hide the gathering window
-      // isGatherable(sessionId,x,y,z);
+      // isGatherable(sessionId,zoneId,x,y,z);
     });
   });
 

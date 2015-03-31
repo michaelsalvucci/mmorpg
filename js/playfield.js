@@ -90,6 +90,7 @@ $(document).ready(function() {
     // Show the world to the user
     $('#landscape').show();
     $('#world').show();
+    $('textarea#menu').focus(); // Set the focus so the user can start running
     //alert('still here');
     // Play the audio
     $('#audio').replaceWith("\
@@ -300,8 +301,8 @@ $(document).ready(function() {
       //  @TODO: ATTACK EVERYTHING IN RANGE!
       //sample var postData = { "email": $('#login_email').val(), "password" : $('#login_password').val() }
       //var postData = { "x": x, "y" : y }
-      //socket.emit('attack', JSON.stringify(postData) );
-      socket.emit('attack',  window.sessionId );
+      //socket.emit('reqAttack', JSON.stringify(postData) );
+      socket.emit('reqAttack',  window.sessionId );
       $('#audio').replaceWith("\
         <div id=audio>\
           <audio autoplay=autoplay>\
