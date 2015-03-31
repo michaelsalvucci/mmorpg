@@ -23,9 +23,8 @@ var execSync = require("exec-sync");  // Synchronous Exec in Node.js
 
 var port = 1337;
 var ip = "192.168.0.52";
-//server.listen(port, ip);
 
-var THREE = require('three');
+//var THREE = require('three');
 
 //var socket = require('socket.io-client')(ip);
 var io = require('socket.io')(http);
@@ -45,35 +44,32 @@ app.use('/images', express.static(__dirname + "/images"));
 app.use('/audio/dynamic', express.static(__dirname + "/audio/dynamic")); // allow all audio/dynamic files to be served
 app.use('/audio', express.static(__dirname + "/audio")); // allow all audio files to be served
 
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // GENERAL FUNCTIONS
-
-
-//discontinued... use the new one below
-// getTimestamp() - useful for logging
-//function getTimestamp() {
-//  return '[' + new Date().toUTCString() + ']';
-//}
-
-
+///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
- * You first need to create a formatting function to pad numbers to two digits…
- **/
+  * twoDigits(d)
+  * You first need to create a formatting function to pad numbers to two digits…
+  **/
 function twoDigits(d) {
     if(0 <= d && d < 10) return "0" + d.toString();
     if(-10 < d && d < 0) return "-0" + (-1*d).toString();
     return d.toString();
 }
 /**
- * …and then create the method to output the date string as desired.
- * Some people hate using prototypes this way, but if you are going
- * to apply this to more than one Date object, having it as a prototype
- * makes sense.
- **/
+  * Date.prototype.toMysqlFormat
+  * …and then create the method to output the date string as desired.
+  * Some people hate using prototypes this way, but if you are going
+  * to apply this to more than one Date object, having it as a prototype
+  * makes sense.
+  **/
 Date.prototype.toMysqlFormat = function() {
   return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
 };
+/**
+  * getTimestamp()
+  **/
 function getTimestamp() {
   return new Date().toMysqlFormat(); // DateTime in MySQL format
 }
@@ -83,12 +79,12 @@ function getTimestamp() {
 
 /**
   * getRandomArbitrary(min, max)
+  * DEFUNCT - NOT USED, BUT KEPT HERE AS EXAMPLE
   * Returns a random number between min (inclusive) and max (exclusive)
   */
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
-
 /**
   * getRandomInt(min, max)
   * Returns a random integer between min (inclusive) and max (inclusive)
@@ -105,51 +101,60 @@ function getRandomInt(min, max) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // INITIALIZATION
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// SPAWN WIPE - This is a one-time event that occurs when the "node server.js" is run
-pool.getConnection(function(err, connection) {
-  if(err) { console.log(err); return; }
-  var sql = "TRUNCATE TABLE monsterPlants";
-  connection.query(sql, [], function(err, results) {
-    connection.release(); // always put connection back in pool after last query
-    if(err) { 
-      console.log(getTimestamp() + ' Spawn Wipe ERR=' + err);
-    } else {
-      console.log(getTimestamp() + ' Spawn Wipe SUCCESS');
-    }
-  });
-});
-
-// SPAWN INITIALIZE - This is a one-time event that occurs when the "node server.js" is run
-pool.getConnection(function(err, connection) {
-  if(err) { console.log(err); return; }
-  var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
-  connection.query(sql, [], function(err, results) {
-    connection.release(); // always put connection back in pool after last query
-    if(err) { 
-      console.log(getTimestamp() + ' FAIL Spawn Initialize1=' + err);
-    } else {
-      console.log(getTimestamp() + ' PASS Spawn Initialize1=' + util.inspect(results)); // useful for debuggging
-      for (var item in results) {
-        var sql = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
-        var query = connection.query(sql, [ results[item]['monsterId']
-, results[item]['zoneId'] 
-, results[item]['xStart'] 
-, results[item]['yStart'] 
-, 0
-, 100
-], function(err, results2) {
-          if(err) {
-            console.log(getTimestamp() + ' err='+err);
-          } else {
-            console.log(getTimestamp() + ' Spawn Initialize2 successful');
-          }
-          console.log(query.sql);
-        });
+/**
+  * spawnWipe()
+  * SPAWN WIPE - This is a one-time event that occurs when the "node server.js" is run
+  **/
+function spawnWipe() {
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); return; }
+    var sql = "TRUNCATE TABLE monsterPlants";
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Wipe err=' + err);
+      } else {
+        console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Wipe');
       }
-    }
+    });
   });
-});
+}
 
+/**
+  * spawnInitialize()
+  * SPAWN INITIALIZE - This is a one-time event that occurs when the "node server.js" is run
+  **/
+function spawnInitialize() {
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(err); return; }
+    var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Initialize1 err=' + err);
+      } else {
+        console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Initialize1');
+        for (var item in results) {
+          var sql = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
+          var query = connection.query(sql, [ results[item]['monsterId']
+  , results[item]['zoneId'] 
+  , results[item]['xStart'] 
+  , results[item]['yStart'] 
+  , 0
+  , 100
+  ], function(err, results2) {
+            if(err) {
+              console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Initialize2 err='+err);
+            } else {
+              console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Initialize2');
+            }
+            //console.log(query.sql);
+          });
+        }
+      }
+    });
+  });
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -302,29 +307,49 @@ app.get("/", function (req, res) {
     //res.send('<h1>hello world</h1>');
 });
 
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// CRON JOBS
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// EVERY SECOND
 setInterval(function(){
-    console.log(onlineClients);
+    console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + onlineClients + ' clients online');  // Every second, show the number of onlineClients
 }, 1000);
 
+// HOURLY - Every 3,600 seconds, respawn the map.  Interestingly, if the server goes down, the map doesn't get respawned until an hour passes of successful running.
+setInterval(function(){
+  spawnWipe();
+  spawnInitialize();
+}, 3600000);
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// W E B   S O C K E T   C O N N E C T I O N
+///////////////////////////////////////////////////////////////////////////////////////////////////
 io.on('connection', function(socket){
-  console.log('a user connected');
+  console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + 'user connected from ' + util.inspect(socket.handshake.headers));
   onlineClients++;
 
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // DISCONNECT
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('disconnect', function(){
     onlineClients--;
-    console.log('user disconnected');
+    console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + 'user disconnected from ' + util.inspect(socket.handshake.headers));
   });
-  socket.on('event', function(){
-    console.log('an event occurred');
-  });
+
+  /////////////////////////////////////////////////////////////////////////////////////////////////
+  // CHAT
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('chat message', function(msg){
     console.log('message: ' + msg);
     io.emit('chat message', msg);
   });
 
-  /////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   // SIGNIN
-  /////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('login', function(msg){
     // now i need to take this msg JSON array and split it into vars:  email and password
     // and show it in the console log
@@ -385,12 +410,6 @@ io.on('connection', function(socket){
         });
         exports.generateSession(userId, function(sessionId) { // the response is the sessionid, or false
           io.emit('login response', sessionId);  // User passed login, so tell him the sessionId
-
-// This needs to be moved to post-char select. PROBABLY CAN DELETE THIS NOW..............
-//exec("/usr/bin/flite 'hello world' -o /var/www/mmorpg/audio/sessionId.wav", puts);
-//io.emit('audioPlay', 'sessionId.wav');
-
-
         });
 
       } else {
@@ -427,6 +446,8 @@ io.on('connection', function(socket){
           console.log('id=' + results[row].id);
           console.log('monsterId=' + results[row].monsterId);
           console.log('hp=' + results[row].hp);
+
+          // @TODO:  REDRAW MONSTER LAYER
 
           // Roll die
           var damage = getRandomInt(0, 50); // 0,50 is min,max damage (a fixed number is used for now during testing)
@@ -652,9 +673,6 @@ io.on('connection', function(socket){
 
 });
 
-//server.listen(port, ip);
-http.listen(1337, function(){
-  console.log('Server is listening on port 1337');
+http.listen(port, ip, function(){
+  console.log(getTimestamp() + ' \033[32mPASS\033[0m Server is listening on port 1337');
 });
-
-console.log('Server started successfully!  BOOYAH!');  // @TODO:  20150225:Should I wrap this line within the http.listen() above?
