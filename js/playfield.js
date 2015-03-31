@@ -1,6 +1,7 @@
 $(document).ready(function() {
 
   var sessionId = "fail"; // Not logged in
+  //alert('sessionId=' + sessionId);
 
   var compass = 0;
   var x = 0;  // @TODO:  Need to really download their current x coordinate upon login
@@ -9,7 +10,7 @@ $(document).ready(function() {
   var socket = io();  // used for chat, login, etc.
 
 
-  // These two lines diable the browser's scrollbars
+  // These two lines disable the browser's scrollbars
   document.documentElement.style.overflow = 'hidden';
   document.body.scroll = "no";
 
@@ -34,7 +35,7 @@ $(document).ready(function() {
   socket.on('resCharacterList', function(msg) {
     //console.log('resCharacterList=' + msg);
     $('.characterSelectItem').replaceWith(msg);
-//alert('ready');
+    //alert('ready');
     $('.characterSelectItem').click( function() {
       var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
       window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
@@ -57,6 +58,7 @@ $(document).ready(function() {
   $('#email').draggable();
 
   $('#interactive').hide();
+
 
   $('#inventory').hide();
   $('#inventory').draggable();
@@ -271,6 +273,10 @@ $(document).ready(function() {
       $("#email").toggle();
     }
 
+    if(code == 70 || code == 102) {  // f or F key pressed
+      $("#interactive").toggle();
+    }
+
     if(code == 73 || code == 105) {  // i or I key pressed
       socket.emit('reqInventory',  window.sessionId );
       $("#inventory").toggle();
@@ -319,7 +325,14 @@ $(document).ready(function() {
 
 
 
+  socket.on('hide interactive', function(msg) {
+    $("#interactive").hide();
+  });
 
+  socket.on('show interactive', function(msg) {
+    $('#interactive').replaceWith("<div id=interactive>" + msg + "</div>");
+    $("#interactive").show();
+  });
 
 
 

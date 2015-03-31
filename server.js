@@ -85,6 +85,7 @@ function getTimestamp() {
 function getRandomArbitrary(min, max) {
     return Math.random() * (max - min) + min;
 }
+
 /**
   * getRandomInt(min, max)
   * Returns a random integer between min (inclusive) and max (inclusive)
@@ -94,7 +95,26 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+/**
+  * getRandom3d6
+  **/
+function getRandom3d6() {
+  return getRandomInt(1,6) + getRandomInt(1,6) + getRandomInt(1,6);
+}
 
+/**
+  * getFail
+  **/
+function getFail() {
+  return getTimestamp() + ' \033[31mFAIL\033[0m ';
+}
+
+/**
+  * getPass
+  **/
+function getPass() {
+  return getTimestamp() + ' \033[32mPASS\033[0m ';
+}
 
 
 
@@ -112,9 +132,9 @@ function spawnWipe() {
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Wipe err=' + err);
+        console.log(getTimestamp() + getFail() + ' Spawn Wipe err=' + err);
       } else {
-        console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Wipe');
+        console.log(getTimestamp() + getPass() + ' Spawn Wipe');
       }
     });
   });
@@ -126,14 +146,14 @@ function spawnWipe() {
   **/
 function spawnInitialize() {
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(err); return; }
+    if(err) { console.log(getFail() + 'spawnInitialize() ' + err); return; }
     var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Initialize1 err=' + err);
+        console.log(getFail() + 'Spawn Initialize1 err=' + err);
       } else {
-        console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Initialize1');
+        console.log(getPass() + 'Spawn Initialize1');
         for (var item in results) {
           var sql = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
           var query = connection.query(sql, [ results[item]['monsterId']
@@ -144,9 +164,9 @@ function spawnInitialize() {
   , 100
   ], function(err, results2) {
             if(err) {
-              console.log(getTimestamp() + ' \033[31mFAIL\033[0m Spawn Initialize2 err='+err);
+              console.log(getFail() + 'Spawn Initialize2 err='+err);
             } else {
-              console.log(getTimestamp() + ' \033[32mPASS\033[0m Spawn Initialize2');
+              console.log(getPass() + 'Spawn Initialize2');
             }
             //console.log(query.sql);
           });
@@ -161,28 +181,28 @@ function spawnInitialize() {
 // DATABASE FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 exports.getUserCoordinates = (function(sessionId, callback) {
-  console.log('sessionId:' + sessionId);
+  //console.log(getPass() + sessionId + ' exports.getUserCoordinates:::sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
-  if(err) { console.log(err); callback(true); return; }
+  if(err) { console.log(getFail() + sessionId + ' err=' + err); callback(true); return; } // this should probably be false
     var sql = "SELECT zoneId, x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if((err) || (sessionId == null)) { // NOTE: Testing for sessionId==null might give unintended consequences
-        console.log('err='+err);
+        console.log(getFail() + sessionId + ' exports.getUserCoordinates:::err='+err);
         callback(true); // this should probably be set to false
         return; // don't think i need this
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('results1='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + sessionId + ' exports.getUserCoordinates='+util.inspect(results)); // useful for debugging
         callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
       }
     });
   });
 });
 exports.getCharacterList = (function(sessionId, callback) {
-  console.log('sessionId:' + sessionId);
+  //console.log('sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(err); callback(false); return; }
+    if(err) { console.log(getFail() + sessionId + ' err=' + err); callback(false); }
     var sql = "SELECT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName \
                 FROM characters c \
                 LEFT JOIN sessions s \
@@ -191,11 +211,11 @@ exports.getCharacterList = (function(sessionId, callback) {
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
-        console.log('err='+err);
+        console.log(getFail() + sessionId + ' exports.getCharacterList:::err='+err);
         callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('results1='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + sessionId + ' exports.getCharacterList='+util.inspect(results)); // useful for debugging
         //callback(results[0].charId, results[0].firstName, results[0].lastName);
         callback(results);
       }
@@ -203,26 +223,26 @@ exports.getCharacterList = (function(sessionId, callback) {
   });
 });
 exports.getMonstersNearMe = (function(sessionId, zoneId, x, y, z, callback) {
-  console.log('exports.getMonstersNearMe sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z);
+  console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z);
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(err); callback(false); return; }
+    if(err) { console.log(getFail() + sessionId + ' err=' + err); callback(false); }
     var sql = "SELECT id, monsterId, hp FROM monsterPlants WHERE zoneId = " + mysql.escape(zoneId) + " AND x = " + mysql.escape(x) + " AND y = " + mysql.escape(y) + " AND z = " + mysql.escape(z) + " AND hp > 0";
-    console.log('sql=' + sql);
+    console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::sql=' + sql);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log('err='+err);
+        console.log(getFail() + sessionId + ' exports.getMonstersNearMe:::err='+err);
         callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('exports.getMonstersNearMe results='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::results='+util.inspect(results)); // useful for debugging
         callback(results);
       }
     });
   });
 });
 exports.getSpeakMyName = (function(sessionId, charId, callback) {
-  console.log('sessionId=' + sessionId + 'charId=' + charId);
+  console.log(getPass() + sessionId + ' charId=' + charId);
   pool.getConnection(function(err, connection) {
     if(err) { console.log(err); callback(false); }
     var sql = "SELECT c.firstName AS firstName, c.lastName AS lastName \
@@ -234,11 +254,11 @@ exports.getSpeakMyName = (function(sessionId, charId, callback) {
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if((err) || (sessionId == null)) {  // NOTE: Testing for sessionId==null might give unintended consequences
-        console.log('err='+err);
+        console.log(getFail() + sessionId + ' exports.getSpeakMyName:::err='+err);
         callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('results='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + sessionId + ' exports.getSpeakMyName:::results='+util.inspect(results)); // useful for debugging
         callback(results[0].firstName, results[0].lastName);
       }
     });
@@ -249,37 +269,37 @@ exports.getSpeakMyName = (function(sessionId, charId, callback) {
   *
   **/
 exports.setMonsterPlantsDamage = (function(id, hp, damage, callback) {
-  console.log('exports.setMonsterPlantsDamage id:' + id + 'hp=' + hp + 'damage=' + damage);
+  console.log(getPass() + 'exports.setMonsterPlantsDamage:::id:' + id + 'hp=' + hp + 'damage=' + damage);
   pool.getConnection(function(err, connection) {
     if(err) { console.log(err); callback(true); return; }
     var sql = "UPDATE monsterPlants SET hp = " + mysql.escape(hp) + " WHERE id = " + mysql.escape(id);
-    console.log('sql = ' + sql);
+    console.log(getPass() + ' exports.setMonsterPlantsDamage:::sql = ' + sql);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log('err='+err);
+        console.log(getFail() + ' exports.setMonsterPlantsDamage:::err='+err);
         callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('exports.setMonsterPlantsDamage results='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + 'exports.setMonsterPlantsDamage:::results='+util.inspect(results)); // useful for debugging
         callback(true);
       }
     });
   });
 });
 exports.setUserCoordinates = (function(sessionId, zoneId, x, y, z, c, callback) {
-  console.log('exports.setUserCoordinates sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z + 'c=' + c);
+  console.log(getPass() + sessionId + ' exports.setUserCoordinates:::sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z + 'c=' + c);
   pool.getConnection(function(err, connection) {
     if(err) { console.log(err); callback(true); return; }
     var sql = "UPDATE sessions SET zoneId=" + mysql.escape(zoneId) + ", x=" + mysql.escape(x) + ", y=" + mysql.escape(y) + ", z = " + mysql.escape(z) + ", c = " + mysql.escape(c) + " WHERE id = " + mysql.escape(sessionId);
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log('err='+err);
+        console.log(getFail() + sessionId + ' exports.setUserCoordinates:::err='+err);
         callback(false);
         // @TODO: Log the character out, and add a console abort message
       } else {
-        console.log('exports.setUserCoordinates results='+util.inspect(results)); // useful for debugging
+        console.log(getPass() + sessionId + ' exports.setUserCoordinates:::results='+util.inspect(results)); // useful for debugging
         callback(sessionId, zoneId, x, y, z, c);
       }
     });
@@ -313,11 +333,12 @@ app.get("/", function (req, res) {
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // EVERY SECOND
 setInterval(function(){
-    console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + onlineClients + ' clients online');  // Every second, show the number of onlineClients
+    console.log(getPass() + onlineClients + ' clients online');  // Every second, show the number of onlineClients
 }, 1000);
 
 // HOURLY - Every 3,600 seconds, respawn the map.  Interestingly, if the server goes down, the map doesn't get respawned until an hour passes of successful running.
 setInterval(function(){
+  console.log(getPass() + 'Hourly Cron Started');
   spawnWipe();
   spawnInitialize();
 }, 3600000);
@@ -328,7 +349,7 @@ setInterval(function(){
 // W E B   S O C K E T   C O N N E C T I O N
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 io.on('connection', function(socket){
-  console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + 'user connected from ' + util.inspect(socket.handshake.headers));
+  console.log(getPass() + 'user connected from ' + util.inspect(socket.handshake.headers));
   onlineClients++;
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,14 +357,14 @@ io.on('connection', function(socket){
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('disconnect', function(){
     onlineClients--;
-    console.log(getTimestamp() + ' \033[32mPASS\033[0m ' + 'user disconnected from ' + util.inspect(socket.handshake.headers));
+    console.log(getPass() + 'user disconnected from ' + util.inspect(socket.handshake.headers));
   });
 
   /////////////////////////////////////////////////////////////////////////////////////////////////
   // CHAT
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('chat message', function(msg){
-    console.log('message: ' + msg);
+    console.log(getPass() + 'message: ' + msg);
     io.emit('chat message', msg);
   });
 
@@ -351,13 +372,12 @@ io.on('connection', function(socket){
   // SIGNIN
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('login', function(msg){
-    // now i need to take this msg JSON array and split it into vars:  email and password
-    // and show it in the console log
-    console.log('message: ' + msg);
+    // Take msg JSON array and split it into vars:  email and password
+    //console.log('message: ' + msg);
     var parsed = JSON.parse(msg);
-    console.log('email:' + parsed.email + ' password:' + parsed.password);
+    //console.log('email:' + parsed.email + ' password:' + parsed.password);
 
-    // then i need to do a mysql lookup to see if the information is correct
+    // Do a mysql lookup to see if the information is correct
     // if it is correct, then log them in.
     exports.getPassword = (function(email, callback) {
       pool.getConnection(function(err, connection) {
@@ -366,7 +386,7 @@ io.on('connection', function(socket){
         connection.query(sql, [], function(err, results) {
           connection.release(); // always put connection back in pool after last query
           if(err) { 
-            console.log('err='+err);
+            console.log(getFail() + 'err='+err);
             callback(true); // this should probably be set to false
             return;  // don't think i need this
           } else {
@@ -384,7 +404,7 @@ io.on('connection', function(socket){
         //var response = "pass";
         //var now = new Date().getTime();
 
-        console.log(getTimestamp() + ' \033[32mLOGIN\033[0m ' + parsed.email + ' passed login with userId ' + userId);
+        console.log(getPass() + parsed.email + ' passed login with userId ' + userId);
 
         // Generate sessionId
         var sessionId = "";
@@ -395,12 +415,12 @@ io.on('connection', function(socket){
         // Insert sessionId into db
         exports.generateSession = (function(userId, callback) {
           pool.getConnection(function(err, connection) {
-            if(err) { console.log(err); callback(true); return; }
+            if(err) { console.log(err); callback(true); return; } // this should probably be false
             var sql = "DELETE FROM sessions WHERE userId = " + mysql.escape(userId) + ";INSERT INTO sessions (id, userId, dt) VALUES (" + mysql.escape(sessionId) + "," + mysql.escape(userId) + "," + mysql.escape(getTimestamp()) + ")";
             connection.query(sql, [], function(err, results) {
               connection.release(); // always put connection back in pool after last query
               if(err) { 
-                console.log('err='+err);
+                console.log(getFail() + 'err='+err);
                 callback(false);
               } else {
                 callback(sessionId);
@@ -415,7 +435,7 @@ io.on('connection', function(socket){
       } else {
         // if not, send them a failed message.
         var response = "fail";
-        console.log(getTimestamp() + ' \033[31mFAILED LOGIN\033[0m user ' + parsed.email + ' with ' + parsed.password);
+        console.log(getFail() + 'user failed login with email ' + parsed.email + ' and password ' + parsed.password);
         io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
       }
     });
@@ -437,21 +457,22 @@ io.on('connection', function(socket){
   socket.on('reqAttack', function(msg){
     // Get Coordinates based on SessionId
     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z); // Don't need c
+      console.log(getPass() + sessionId + ' exports.getUserCoordinates' + zoneId + x + y + z); // Don't need c
       // Get the monsters near the user's coordinates
       exports.getMonstersNearMe(sessionId, zoneId, x, y, z, function(results) { // The callback is sending us results
-        console.log('results='+results);
+        console.log(getPass() + sessionId + 'reqAttack:::results='+results);
         for (var row in results) {
-          console.log('row=' + row);
-          console.log('id=' + results[row].id);
-          console.log('monsterId=' + results[row].monsterId);
-          console.log('hp=' + results[row].hp);
+          //console.log('row=' + row);
+          //console.log('id=' + results[row].id);
+          //console.log('monsterId=' + results[row].monsterId);
+          //console.log('hp=' + results[row].hp);
 
           // @TODO:  REDRAW MONSTER LAYER
 
           // Roll die
-          var damage = getRandomInt(0, 50); // 0,50 is min,max damage (a fixed number is used for now during testing)
-          console.log('damage = ' + damage);
+          //var damage = getRandomInt(0, 50); // 0,50 is min,max damage (a fixed number is used for now during testing)
+          var damage = getRandom3d6();
+          //console.log('damage = ' + damage);
           var newHp = results[row].hp - damage;
 
           // Apply damage - for each monster id, send the damage (return 1 if dead), and see if i killed it (ie. loot bag drops)
@@ -463,9 +484,10 @@ io.on('connection', function(socket){
           // Is Dead?
           if( damage >= results[row].hp ) {
             // Monster is dead - Drop Loot based on monsterId
-            console.log('monster is dead');
+            io.emit('show interactive', '(F) Get Loot'); // Shows the interactive window
+            console.log(getPass() + sessionId + ' monster is dead');
           } else {
-            console.log('monster is still alive');
+            console.log(getPass() + sessionId + ' monster is still alive');
           }
 
           // @TODO: Show damage numbers on screen
@@ -481,7 +503,7 @@ io.on('connection', function(socket){
     sessionId = msg;
     // SELECT the user's coordinates x,y,z,compass based on their sessionId
     exports.getCharacterList(sessionId, function(results) {  // The callback is sending us results
-      console.log('sResults=' + results);
+      //console.log('sResults=' + results+util.inspect(results));
       var html="";
       for (var row in results) {
         //console.log('row=' + row);
@@ -499,13 +521,13 @@ io.on('connection', function(socket){
 
 
   socket.on('reqSpeakMyName', function(sessionId, charId) {
-    console.log('reqSpeakMyName=' + sessionId + ' ' + charId);
+    console.log(getPass() + sessionId + ' reqSpeakMyName=' + ' ' + charId);
     exports.getSpeakMyName(sessionId, charId, function(firstName, lastName) {
-      console.log('getSpeakMyName firstName=' + firstName + ' lastName=' + lastName);
+      console.log(getPass() + sessionId + ' getSpeakMyName:firstName=' + firstName + ' lastName=' + lastName);
       var filename = "dynamic/" + sessionId + "-" + charId + ".wav";
-      console.log('filename=' + filename);
+      console.log(getPass() + sessionId + ' filename=' + filename);
       exports.speak(firstName, lastName, filename, prefix='Welcome', function(filename) {
-        console.log(prefix + firstName + lastName + '. filename=' + filename);
+        console.log(getPass() + sessionId + ' exports.speak:::' + prefix + firstName + lastName + '. filename=' + filename);
       });
       io.emit('audioPlay', filename);
     });
@@ -541,10 +563,10 @@ io.on('connection', function(socket){
   /////////////////////////////////////////////////////////////////////////////////////////////////
   socket.on('turn right', function(msg){   // d key pressed
     sessionId = msg;
-    console.log('turn right: ' + msg);
+    console.log(getPass() + sessionId + ' turn right: ' + msg);
     // SELECT the user's coordinates x,y,z,compass based on their sessionId
     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
+      console.log(getPass() + sessionId + ' turn right:::exports.getUserCoordinates:::' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       var c = c + 45;
       if(c >= 360) {  // If the compass is greater than 360 degrees
@@ -552,7 +574,7 @@ io.on('connection', function(socket){
       }
       // UPDATE the user's coordinates in the db
       exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+        console.log(getPass() + sessionId + ' turn right:::exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send zoneId,x,y,z,c coordinates back to the user
       var JSONobj = '{'
@@ -570,10 +592,10 @@ io.on('connection', function(socket){
 
   socket.on('turn left', function(msg){   // d key pressed
     sessionId = msg;
-    console.log('turn left: ' + msg);
+    console.log(getPass() + sessionId + ' turn left: ' + msg);
     // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
     exports.getUserCoordinates(sessionId, function(zoneId,x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
+      console.log(getPass() + sessionId + ' turn left:::exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       var c = c - 45;
       if(c < 0) {     // if compass is less than 0 degrees
@@ -581,7 +603,7 @@ io.on('connection', function(socket){
       }
       // UPDATE the user's coordinates in the db
       exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+        console.log(getPass() + sessionId + ' turn left:::exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send zoneId,x,y,z,c coordinates back to the user
       var JSONobj = '{'
@@ -599,10 +621,10 @@ io.on('connection', function(socket){
 
   socket.on('walk forward', function(msg){    // w key pressed
     sessionId = msg;
-    console.log('walk forward: ' + msg);
+    console.log(getPass() + sessionId + ' walk forward: ' + msg);
     // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
+      console.log(getPass() + sessionId + ' walk forward:::exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       if(c < 90 || c > 270) {
         y++;
@@ -618,7 +640,7 @@ io.on('connection', function(socket){
       }
       // UPDATE the user's coordinates in the db
       exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+        console.log(getPass() + sessionId + ' walk forward:::exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send x,y,z,c coordinates back to the user
       var JSONobj = '{'
@@ -636,10 +658,10 @@ io.on('connection', function(socket){
 
   socket.on('walk backward', function(msg){    // x key pressed
     sessionId = msg;
-    console.log('walk backward: ' + msg);
+    console.log(getPass() + sessionId + ' walk backward: ' + msg);
     // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
-      console.log('hereiam=exports.getUserCoordinates' + zoneId + x + y + z + c);
+      console.log(getPass() + sessionId + ' walk backward:::exports.getUserCoordinates' + zoneId + x + y + z + c);
       // Calculate the change in coordinates
       if(c < 90 || c > 270) {
         y--;
@@ -655,7 +677,7 @@ io.on('connection', function(socket){
       }
       // UPDATE the user's coordinates in the db
       exports.setUserCoordinates(sessionId, zoneId, x, y, z, c, function(result) {  // The callback is sending us zoneId,x,y,z,c
-        console.log('hereiam=exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
+        console.log(getPass() + sessionId + ' walk backward:::exports.setUserCoordinates ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c);
       });
       // Send x,y,z,c coordinates back to the user
       var JSONobj = '{'
@@ -671,8 +693,8 @@ io.on('connection', function(socket){
     });
   });
 
-});
+}); // End of Web Socket Connection
 
 http.listen(port, ip, function(){
-  console.log(getTimestamp() + ' \033[32mPASS\033[0m Server is listening on port 1337');
+  console.log(getPass() + 'Server is listening on port 1337');
 });
