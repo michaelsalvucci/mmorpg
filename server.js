@@ -11,7 +11,7 @@ var onlineClients = 0;
 var http = require('http').Server(app);  // note: http is a node core module, so it does not have to be installed
 
 // This creates a pool we can use to mimic a persistent connection
-var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "root", password: "", database: "mmorpg", multipleStatements: true});
+var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "root", password: "theworldismyoyster", database: "mmorpg", multipleStatements: true});
 
 var util = require('util');  // useful for debugging
 
@@ -44,9 +44,9 @@ app.use('/images', express.static(__dirname + "/images"));
 app.use('/audio/dynamic', express.static(__dirname + "/audio/dynamic")); // allow all audio/dynamic files to be served
 app.use('/audio', express.static(__dirname + "/audio")); // allow all audio files to be served
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////
 // GENERAL FUNCTIONS
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 /**
   * twoDigits(d)
@@ -118,42 +118,122 @@ function getPass() {
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // INITIALIZATION
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 /**
-  * spawnWipe()
-  * SPAWN WIPE - This is a one-time event that occurs when the "node server.js" is run
+  * spawnWipeGathers()
+  *
+  * Runs an hour after "node server.js" is started, and each hour thereafter (ref. cron jobs)
+  * NB: If server keeps crashing within one hour, the spawn will continue to disappear as users consume it.
+  *     This can either be considered "drought conditions" or these methods will need to be invoked at startup.
+  *     Whatever the case, the programmer should focus on server stability, hence this caveat emptor.
+  *
+  * JSDoc Reference:  http://en.wikipedia.org/wiki/JSDoc
+  *
+  * @author     2015 Michael Salvucci
+  * @copyright  2015 Michael Salvucci
+  * @exception  err
+  * @license    Proprietary
+  * @link       /docs/initialization/spawnWipeGathers
+  * @package    initialization
+  * @return     true  Database call completed successfully
+  * @return     false Database call failed??? (@return or @throw?)
+  * @see        CRON JOBS
+  * @throws     false???
+  * @todo       Error Handling needs to be documented in the console properly, so we must elaborate on this below.
+  * @version    0.0.1
   **/
-function spawnWipe() {
+function spawnWipeGathers() {
   pool.getConnection(function(err, connection) {
     if(err) { console.log(err); return; }
-    var sql = "TRUNCATE TABLE monsterPlants";
+    var sql = "TRUNCATE TABLE gatherPlants";
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log(getTimestamp() + getFail() + ' Spawn Wipe err=' + err);
+        console.log(getFail() + 'Spawn Wipe Gathers err=' + err);
       } else {
-        console.log(getTimestamp() + getPass() + ' Spawn Wipe');
+        console.log(getPass() + 'Spawn Wipe Gathers');
       }
     });
   });
 }
 
 /**
-  * spawnInitialize()
-  * SPAWN INITIALIZE - This is a one-time event that occurs when the "node server.js" is run
+  * spawnWipeMonsters()
+  * Runs an hour after "node server.js" is started, and each hour thereafter (ref. cron jobs)
+  *     This can either be considered "drought conditions" or these methods will need to be invoked at startup.
+  *     Whatever the case, the programmer should focus on server stability, hence this caveat emptor.
   **/
-function spawnInitialize() {
+function spawnWipeMonsters() {
   pool.getConnection(function(err, connection) {
-    if(err) { console.log(getFail() + 'spawnInitialize() ' + err); return; }
+    if(err) { console.log(err); return; }
+    var sql = "TRUNCATE TABLE monsterPlants";
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log(getFail() + 'Spawn Wipe Monsters err=' + err);
+      } else {
+        console.log(getPass() + 'Spawn Wipe Monsters');
+      }
+    });
+  });
+}
+
+/**
+  * spawnInitializeGathers()
+  * Runs an hour after "node server.js" is started, and each hour thereafter (ref. cron jobs)
+  *     This can either be considered "drought conditions" or these methods will need to be invoked at startup.
+  *     Whatever the case, the programmer should focus on server stability, hence this caveat emptor.
+  **/
+function spawnInitializeGathers() {
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(getFail() + 'spawnInitializeGathers() ' + err); return; }
+    var sql = "SELECT itemId, zoneId, x, y, z FROM gatherSeeds";
+    connection.query(sql, [], function(err, results) {
+      connection.release(); // always put connection back in pool after last query
+      if(err) { 
+        console.log(getFail() + 'Spawn Initialize Gathers1 err=' + err);
+      } else {
+        console.log(getPass() + 'Spawn Initialize Gathers1');
+        for (var row in results) {
+          var sql = "INSERT INTO gatherPlants (itemId, zoneId, x, y, z) VALUES (?, ?, ?, ?, ?)";
+          var query = connection.query(sql, [ 
+            results[row]['itemId']
+            , results[row]['zoneId'] 
+            , results[row]['x'] 
+            , results[row]['y'] 
+            , results[row]['z']
+          ], function(err, results2) {
+            if(err) {
+              console.log(getFail() + 'Spawn Initialize Gathers2 err='+err);
+            } else {
+              console.log(getPass() + 'Spawn Initialize Gathers2');
+            }
+            //console.log(query.sql);
+          });
+        }
+      }
+    });
+  });
+}
+
+/**
+  * spawnInitializeMonsters()
+  * Runs an hour after "node server.js" is started, and each hour thereafter (ref. cron jobs)
+  *     This can either be considered "drought conditions" or these methods will need to be invoked at startup.
+  *     Whatever the case, the programmer should focus on server stability, hence this caveat emptor.
+  **/
+function spawnInitializeMonsters() {
+  pool.getConnection(function(err, connection) {
+    if(err) { console.log(getFail() + 'spawnInitializeMonsters() ' + err); return; }
     var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
     connection.query(sql, [], function(err, results) {
       connection.release(); // always put connection back in pool after last query
       if(err) { 
-        console.log(getFail() + 'Spawn Initialize1 err=' + err);
+        console.log(getFail() + 'Spawn Initialize Monsters1 err=' + err);
       } else {
-        console.log(getPass() + 'Spawn Initialize1');
+        console.log(getPass() + 'Spawn Initialize Monsters1');
         for (var item in results) {
           var sql = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
           var query = connection.query(sql, [ results[item]['monsterId']
@@ -164,9 +244,9 @@ function spawnInitialize() {
   , 100
   ], function(err, results2) {
             if(err) {
-              console.log(getFail() + 'Spawn Initialize2 err='+err);
+              console.log(getFail() + 'Spawn Initialize Monsters2 err='+err);
             } else {
-              console.log(getPass() + 'Spawn Initialize2');
+              console.log(getPass() + 'Spawn Initialize Monsters2');
             }
             //console.log(query.sql);
           });
@@ -176,10 +256,20 @@ function spawnInitialize() {
   });
 }
 
+/**
+  * wipeAudioDynamic()
+  *
+  * @todo Add Error Handling
+  **/
+function wipeAudioDynamic() {
+  execSync("/bin/rm -rf audio/dynamic/");  // Synchronous Exec in Node.js
+  execSync("/bin/mkdir audio/dynamic/");  // Synchronous Exec in Node.js
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////
 // DATABASE FUNCTIONS
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 exports.getUserCoordinates = (function(sessionId, callback) {
   //console.log(getPass() + sessionId + ' exports.getUserCoordinates:::sessionId:' + sessionId);
   pool.getConnection(function(err, connection) {
@@ -328,9 +418,16 @@ app.get("/", function (req, res) {
 });
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// INITTAB - The stuff that runs at startup
+///////////////////////////////////////////////////////////////////////////////
+wipeAudioDynamic();
+console.log(getPass() + 'wipeAudioDynamic() started - this is a one-time event');
+
+
+///////////////////////////////////////////////////////////////////////////////
 // CRON JOBS
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // EVERY SECOND
 setInterval(function(){
     console.log(getPass() + onlineClients + ' clients online');  // Every second, show the number of onlineClients
@@ -339,38 +436,41 @@ setInterval(function(){
 // HOURLY - Every 3,600 seconds, respawn the map.  Interestingly, if the server goes down, the map doesn't get respawned until an hour passes of successful running.
 setInterval(function(){
   console.log(getPass() + 'Hourly Cron Started');
-  spawnWipe();
-  spawnInitialize();
-}, 3600000);
+  spawnWipeGathers();
+  spawnWipeMonsters();
+
+  spawnInitializeGathers();
+  spawnInitializeMonsters();
+}, 60000);  // @todo SINCE WE'RE IN DEVELOPMENT, I'M CHANGING THIS FROM 3,600,000ms (1 hour) to 60,000ms (1 minute)
 
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 // W E B   S O C K E T   C O N N E C T I O N
-///////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 io.on('connection', function(socket){
   console.log(getPass() + 'user connected from ' + util.inspect(socket.handshake.headers));
   onlineClients++;
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // DISCONNECT
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('disconnect', function(){
     onlineClients--;
     console.log(getPass() + 'user disconnected from ' + util.inspect(socket.handshake.headers));
   });
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // CHAT
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('chat message', function(msg){
     console.log(getPass() + 'message: ' + msg);
     io.emit('chat message', msg);
   });
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // SIGNIN
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('login', function(msg){
     // Take msg JSON array and split it into vars:  email and password
     //console.log('message: ' + msg);
@@ -451,9 +551,9 @@ io.on('connection', function(socket){
   });
 
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // ATTACK
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('reqAttack', function(msg){
     // Get Coordinates based on SessionId
     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
@@ -496,9 +596,9 @@ io.on('connection', function(socket){
     });
   });
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // CHARACTER SELECT and CHARACTER-related ACTIVITIES
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('reqCharacterList', function(msg){
     sessionId = msg;
     // SELECT the user's coordinates x,y,z,compass based on their sessionId
@@ -533,9 +633,9 @@ io.on('connection', function(socket){
     });
   });
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   // INVENTORY
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('reqInventory', function(msg){   // I or i key pressed
     sessionId = msg;
     // @TODO:  Right now, we're faking the results, but this needs to be a db lookup
@@ -558,9 +658,9 @@ io.on('connection', function(socket){
     io.emit('resInventory', JSONobj);
   });
 
-  /////////////////////////////////////////////////////////////////////////////////////////////////
-  // NAVIGATION
-  /////////////////////////////////////////////////////////////////////////////////////////////////
+  /////////////////////////////////////////////////////////////////////////////
+  // NAVIGATION and MAP
+  /////////////////////////////////////////////////////////////////////////////
   socket.on('turn right', function(msg){   // d key pressed
     sessionId = msg;
     console.log(getPass() + sessionId + ' turn right: ' + msg);
@@ -692,6 +792,49 @@ io.on('connection', function(socket){
       // isGatherable(sessionId,zoneId,x,y,z);
     });
   });
+
+
+
+
+  socket.on('reqDrawMap', function(msg){
+    sessionId = msg;
+    console.log(getPass() + sessionId + ' resDrawMap: ' + msg);
+
+    var string = "";
+
+    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+      console.log(getPass() + sessionId + ' exports.getUserCoordinates' + zoneId + x + y + z); // Don't need c
+
+      for (j = y-5; j < y+5; j++ ) {
+        for (i = x-5; i < x+5; i++) {
+          console.log(getPass() + sessionId + ' x=' + x + ' y=' + y + ' i=' + i + ' j=' + j);
+          // Is this position the same position as where i'm standing?
+          if(i==x && j==y) {
+            // This means the position i'm testing is the same as mine
+            string = string.concat("<div class=mapCoord>M</div>");
+            console.log(getPass() + sessionId + 'same position as me x=' + x + ' y=' + y + ' i=' + i + ' j=' + j);
+          } else {
+            // @todo isMapMonster() - show a monster on the map
+            // @todo isMapGatherable() - show gathering spot.  This is different from isGatherable.
+            // @todo isMapParty() - show party members
+            // else show nothing...
+            string = string.concat("<div class=mapCoord>&nbsp;</div>");
+          }
+        }
+        string = string.concat("<div class=mapCR>&nbsp;</div>");
+      } 
+      var JSONobj = '{'
+        +'"string" : "' + string + '",'
+        +'"x" : ' + x + ','
+        +'"y" : ' + y
+        +'}';    
+      io.emit('resDrawMap', JSONobj);
+    });
+  });
+
+
+
+
 
 }); // End of Web Socket Connection
 

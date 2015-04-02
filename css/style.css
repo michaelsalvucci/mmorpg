@@ -213,19 +213,27 @@ background-color: lightyellow; /* remove later */
 }
 
 #map {
-  background-color: red;
-  
+  background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
   background: url(../images/map.png);
-  background-size: 100%;
-  background-repeat: no-repeat;
-  
   margin: 10 0 0 700;
+  /*background-size: 100%;
+  background-repeat: no-repeat;  */
   position: absolute;
   height: 200;  
   width: 300;
   z-index: 70;
 }
+.mapCoord {
 
+  float:left;
+  height:10%;  /* i'm showing 10 y coordinates */
+  width:10%;  /* i'm showing 10 x coordinates */
+}
+.mapCR {
+  float:none; /* fake a carriage return */
+  height:0%;
+  width:0%;
+}
 #paperdoll {
   background-color: yellow;
   margin: 300 0 0 300;

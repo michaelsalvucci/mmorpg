@@ -244,11 +244,15 @@ $(document).ready(function() {
     if(code == 87 || code == 119) {  // w or W key pressed
       // walk forward
       socket.emit('walk forward', window.sessionId );
+      socket.emit('reqDrawMap', window.sessionId );
+      map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 88 || code == 120) {  // x or X key pressed
       // walk backward
       socket.emit('walk backward', window.sessionId );
+      socket.emit('reqDrawMap', window.sessionId );
+      map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
 
@@ -334,6 +338,12 @@ $(document).ready(function() {
     $("#interactive").show();
   });
 
+  socket.on('resDrawMap', function(msg) {
+      console.log(msg);
+      var obj = $.parseJSON(msg);
+      // NOTE: This is a -x position and +y position
+      $('#map').replaceWith("<div id=map style=\"background-position-x:-"+obj.x+"px;background-position-y:"+obj.y+"px;\">" + obj.string + "</div>");
+  });
 
 
   socket.on('audioPlay', function(msg) {
