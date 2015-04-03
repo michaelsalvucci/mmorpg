@@ -144,6 +144,20 @@ background-color: lightyellow; /* remove later */
 #chat .ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
 #chat .ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px;}*/
 
+
+#compass {
+  background-color: lightgreen;
+  left: 0;
+  right: 0;
+  margin: auto;
+  position: absolute;
+  height: 50;  
+  width: 400;
+  z-index: 100;
+}
+
+
+
 #debug {
   background-color: orange;
   margin: 50 0 0 100;
@@ -212,19 +226,35 @@ background-color: lightyellow; /* remove later */
   z-index: 70;
 }
 
+#mapCover{
+  height: 30%;  
+  width: 30%;
+  z-index: 70;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+}
 #map {
+  /*map is currently 1280x1024*/
   background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
   background: url(../images/map.png);
-  margin: 10 0 0 700;
+  
+  opacity:0.5;
+  
+  /*border-radius: 15px;
+  -webkit-border-radius:15px;
+  -moz-border-radius:15px;*/
+  margin: 0px 24px 24px 0px;
+  /*margin: 10 0 0 700;*/
+  
   /*background-size: 100%;
   background-repeat: no-repeat;  */
   position: absolute;
-  height: 200;  
-  width: 300;
+  height: 100%;
+  width: 100%;
   z-index: 70;
 }
 .mapCoord {
-
   float:left;
   height:10%;  /* i'm showing 10 y coordinates */
   width:10%;  /* i'm showing 10 x coordinates */
@@ -252,11 +282,3 @@ background-color: lightyellow; /* remove later */
   z-index: 70;
 }
 
-#compass {
-  background-color: lightgreen;
-  margin: 0 0 0 300;
-  position: absolute;
-  height: 50;  
-  width: 400;
-  z-index: 100;
-}

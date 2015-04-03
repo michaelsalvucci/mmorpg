@@ -11,7 +11,7 @@ var onlineClients = 0;
 var http = require('http').Server(app);  // note: http is a node core module, so it does not have to be installed
 
 // This creates a pool we can use to mimic a persistent connection
-var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "root", password: "theworldismyoyster", database: "mmorpg", multipleStatements: true});
+var pool = mysql.createPool({connectionLimit: 250, host: "127.0.0.1", user: "root", password: "", database: "mmorpg", multipleStatements: true});
 
 var util = require('util');  // useful for debugging
 
@@ -822,7 +822,13 @@ io.on('connection', function(socket){
           }
         }
         string = string.concat("<div class=mapCR>&nbsp;</div>");
-      } 
+      }
+
+      // Since the image is currently set to 1280x1024 and the h x w is 300x300,
+      // we take 300-1024 = -724, so we subtract that to force the image to begin
+      // in the bottom left corner.
+      y = y - 724;
+
       var JSONobj = '{'
         +'"string" : "' + string + '",'
         +'"x" : ' + x + ','

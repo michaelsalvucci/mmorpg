@@ -72,7 +72,11 @@ $(document).ready(function() {
   $('#login').draggable();
 
   $('#map').hide();
-  $('#map').draggable();
+  //$('#map').draggable();
+
+  $('#mapCover').show();
+  $('#mapCover').draggable();
+  $('#mapCover').resizable();
 
   $('#paperdoll').hide();
   $('#paperdoll').draggable();
@@ -329,6 +333,20 @@ $(document).ready(function() {
 
 
 
+
+  /////////////////////////////////////////////////////////////////////////////
+  // MOUSE EVENTS
+  $('.each_inventory').dblclick(function(event) {
+    //console.log(this);
+    alert($(this).data("itemid"));
+    //@todo socket.emit('consume', window.sessionId, $(this).data("itemid"));
+  });
+
+
+  /////////////////////////////////////////////////////////////////////////////
+  // OTHER
+
+
   socket.on('hide interactive', function(msg) {
     $("#interactive").hide();
   });
@@ -341,7 +359,7 @@ $(document).ready(function() {
   socket.on('resDrawMap', function(msg) {
       console.log(msg);
       var obj = $.parseJSON(msg);
-      // NOTE: This is a -x position and +y position
+      // NOTE: This is a negative x position (denoted by -"+obj.x") and positive y position
       $('#map').replaceWith("<div id=map style=\"background-position-x:-"+obj.x+"px;background-position-y:"+obj.y+"px;\">" + obj.string + "</div>");
   });
 
