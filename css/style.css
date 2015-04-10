@@ -1,136 +1,132 @@
 /* 
     Document   : style.css
     Created on : Jan 23, 2015, 1:11:32 AM
-    Author     : michael
-    Description:
-        Purpose of the stylesheet follows.
+    Author     : Michael Salvucci
+    Description: Purpose of the stylesheet follows.
 */
 
 /* 
-   TODO customize this sample style
    Syntax recommendation http://www.w3.org/TR/REC-CSS2/
 */
 
 html {
-  /* background-color: yellow; */ /* fixes page edge */
+    /* background-color: yellow; */ /* fixes page edge */
 }
 
 root { 
-  display: block;
+    display: block;
 }
 
 #world {
-  /*background-color: red; */
-  background: url('/images/backgrounds/genesis.jpg');
-  background-position: 0; /* @TODO: Assumes user's compass starts at 0 degrees, which may not be correct on initialization, so something may need tweaking */
-  background-repeat: repeat-x;
-height: 100%;
-margin: -10px;
-padding: -10px;
-/* background-size: cover;
--webkit-background-size: cover;
--moz-background-size: cover;
--o-background-size: cover;*/
-  width: 1280px; /* was 99%.  Currently 1280px, but this should be set to the user's browser width' */
-  border: none;
-  opacity: 0.5; /* @TODO: arbitrary number for now */
-  position: absolute;
-  z-index: 0;
+    /*background-color: red; */
+    background: url('/images/backgrounds/genesis.jpg');
+    background-position: 0; /* @todo Assumes user's compass starts at 0 degrees, which may not be correct on initialization, so something may need tweaking */
+    background-repeat: repeat-x;
+    height: 100%;
+    margin: -10px;
+    padding: -10px;
+    /* background-size: cover;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;*/
+    width: 1280px; /* was 99%.  Currently 1280px, but this should be set to the user's browser width' */
+    border: none;
+    opacity: 0.5; /* @todo Arbitrary number for now */
+    position: absolute;
+    z-index: 0;
 }
 
 #playfield textarea#menu {
-  /*background-color: darkcyan;*/
-  background-color: transparent; /* important so the background world picture appears */
-  opacity: 0.5; /* useful for hiding what's being typed in the menu */
-  border: none;
-  height: 100%;
-  width: 100%;
-  margin: -6px;
-  padding: 0;
-  position: absolute;
-  z-index: 1;
+    /*background-color: darkcyan;*/
+    background-color: transparent; /* important so the background world picture appears */
+    opacity: 0.5; /* useful for hiding what's being typed in the menu */
+    border: none;
+    height: 100%;
+    width: 100%;
+    margin: -6px;
+    padding: 0;
+    position: absolute;
+    z-index: 1;
 }
 
 
 
 #avatar {
-  background: url('/images/avatar1.png');
-  margin: 774 0 0 530;
-  position: absolute;
-  height: 200;  
-  width: 200;
-  z-index: 30;
+    background: url('/images/avatar1.png');
+    margin: 774px 0 0 530px;
+    position: absolute;
+    height: 200px;
+    width: 200px;
+    z-index: 30;
   
-  /* -webkit-transition: 3s ease-in-out;
-  -moz-transition: 3s ease-in-out;
-  -o-transition: 3s ease-in-out; */
-  transition: 1s ease-in-out;
-  /*transform: rotate(30deg); */
-
+    /* -webkit-transition: 3s ease-in-out;
+    -moz-transition: 3s ease-in-out;
+    -o-transition: 3s ease-in-out; */
+    transition: 1s ease-in-out;
+    /*transform: rotate(30deg); */
 }
 #avatar:hover {
-  /*transform: translate(3em,0);*/
-  transform: translate(3em,6em);
+    /*transform: translate(3em,0);*/
+    transform: translate(3em,6em);
 }
 
 #bank {
-  background-color: red;
-  margin: 50 0 0 0;
-  position: absolute;
-  height: 200;  
-  width: 200;
-  z-index: 70;
+    background-color: red;
+    margin: 50px 0 0 0;
+    position: absolute;
+    height: 200px;  
+    width: 200px;
+    z-index: 70;
 }
 
 .characterSelectItem {
-  background-color: yellowgreen;
-  float: left;
-  margin: 2px;
-  position: relative;
-  height: 128px;
-  width: 128px;
-  z-index: 80;
+    background-color: yellowgreen;
+    float: left;
+    margin: 2px;
+    position: relative;
+    height: 128px;
+    width: 128px;
+    z-index: 80;
 }
-
 #characterSelect {
-  background-color: green;
-  margin: 200 0 0 350;
-  position: absolute;
-  height: 400;  
-  width: 400;
-  z-index: 70;
+    background-color: green;
+    margin: 200px 0 0 350px;
+    position: absolute;
+    height: 400px;  
+    width: 400px;
+    z-index: 70;
 }
 
 #chat {
-  background-color: lemonchiffon;
-  margin: 10% 0 0 20%;
-  position: absolute;
-  height: 42%;  
-  width: 40%;
-  z-index: 70;
-  font-family: IM Fell English,serif;
+    background-color: lemonchiffon;
+    margin: 10% 0 0 20%;
+    position: absolute;
+    height: 42%;
+    width: 40%;
+    z-index: 70;
+    font-family: IM Fell English,serif;
 }
 #titlebar_chat {
-  background-color: gold;
+    background-color: gold;
 }
 #messages {
-background-color: lemonchiffon; /* remove later */
-  height:90%;
-  max-height:90%;
-  overflow-y:auto;
-padding:0 0 4% 0;
-width:100%;
+    background-color: lemonchiffon; /* remove later */
+    height:90%;
+    max-height:90%;
+    overflow-y:auto;
+    padding:0 0 4% 0;
+    width:100%;
 }
 #contents_message {
-background-color: lemonchiffon; /* remove later */
-height: 10%;
-padding: 0%;
-width: 100%;
+    background-color: lemonchiffon; /* remove later */
+    height: 10%;
+    padding: 0%;
+    width: 100%;
 }
 #message { /* this is the textarea input bar within the chat window */
-background-color: lightyellow; /* remove later */
-  height: 100%;
-  width:90%;
+    background-color: lightyellow; /* remove later */
+    height: 100%;
+    width:90%;
 }
 /*#chat .ui-resizable { position: relative;}
 #chat .ui-resizable-handle { position: absolute;font-size: 0.1px; display: block; }
@@ -146,138 +142,135 @@ background-color: lightyellow; /* remove later */
 
 
 #compass {
-  background-color: lightgreen;
-  left: 0;
-  right: 0;
-  margin: auto;
-  position: absolute;
-  height: 50;  
-  width: 400;
-  z-index: 100;
+    background-color: lightgreen;
+    left: 0;
+    right: 0;
+    margin: auto;
+    position: absolute;
+    height: 50px;
+    width: 400px;
+    z-index: 100;
 }
 
-
-
 #debug {
-  background-color: orange;
-  margin: 50 0 0 100;
-  position: absolute;
-  height: 300;  
-  width: 200;
-  z-index: 70;
+    background-color: orange;
+    margin: 50px 0 0 100px;
+    position: absolute;
+    height: 300px;
+    width: 200px;
+    z-index: 70;
 }
 
 #email {
-  background-color: green;
-  margin: 50 0 0 600;
-  position: absolute;
-  height: 200;  
-  width: 200;
-  z-index: 70;
+    background-color: green;
+    margin: 50px 0 0 600px;
+    position: absolute;
+    height: 200px;
+    width: 200px;
+    z-index: 70;
 }
 
 #interactive {
-  background-color: yellow;
-  margin: 70% 0 0 70%; /*700 0 0 700;*/
-  position: absolute;
-  height: 50;
-  width: 200;
-  z-index: 100;
+    background-color: yellow;
+    margin: 70% 0 0 70%; /*700 0 0 700;*/
+    position: absolute;
+    height: 50px;
+    width: 200px;
+    z-index: 100;
 }
 
 #inventory {
-  background-color: brown;
-  margin: 500px 0 0 300px;
-  position: absolute;
-  height: 234px; /* (32px * 6 row down) + 18px for the word INVENTORY */
-  width: 200px; /* 32px * 5 columns wide + 20px for scroll */
-  max-height: 468px;
-  overflow-y: scroll;
-  z-index: 70;
+    background-color: brown;
+    margin: 500px 0 0 300px;
+    position: absolute;
+    height: 234px; /* (32px * 6 row down) + 18px for the word INVENTORY */
+    width: 200px; /* 32px * 5 columns wide + 20px for scroll */
+    max-height: 468px;
+    overflow-y: scroll;
+    z-index: 70;
 }
 .each_inventory {
-  background-color: yellowgreen;
-  margin: 2px;
-  float: left;
-  position: relative;
-  height: 32px;
-  width: 32px;
-  z-index: 80;
+    background-color: yellowgreen;
+    margin: 2px;
+    float: left;
+    position: relative;
+    height: 32px;
+    width: 32px;
+    z-index: 80;
 }
 
 #login {
-  background-image: linear-gradient(rgba(255,255,255,0.0), rgba(255,255,255,0.1)), url('/images/backgrounds/parchment.jpg');
-  background-color: blue;
-  border-radius: 10px;
-  font-family: 'IM Fell English SC', serif;
-  position: absolute;
+    background-image: linear-gradient(rgba(255,255,255,0.0), rgba(255,255,255,0.1)), url('/images/backgrounds/parchment.jpg');
+    background-color: blue;
+    border-radius: 10px;
+    font-family: 'IM Fell English SC', serif;
+    position: absolute;
   
-  /* margin: 300 0 0 100; */
-  /* to center on the page */
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
+    /* margin: 300 0 0 100; */
+    /* to center on the page */
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: auto;
   
-  height: 45%; /*250px;*/
-  width: 40%; /*200px;  */
-  z-index: 70;
+    height: 45%; /*250px;*/
+    width: 40%; /*200px;  */
+    z-index: 70;
 }
 
 #mapCover{
-  height: 30%;  
-  width: 30%;
-  z-index: 70;
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
+    height: 30%;  
+    width: 30%;
+    z-index: 70;
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
 }
 #map {
-  /*map is currently 1280x1024*/
-  background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
-  /*background: url(../images/map.png);*/
+    /*map is currently 1280x1024*/
+    background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
+    /*background: url(../images/map.png);*/
   
-  opacity:0.5;
+    opacity:0.5;
   
-  /*border-radius: 15px;
-  -webkit-border-radius:15px;
-  -moz-border-radius:15px;*/
-  margin: 0px 24px 24px 0px;
+    /*border-radius: 15px;
+    -webkit-border-radius:15px;
+    -moz-border-radius:15px;*/
+    margin: 0px 24px 24px 0px;
   
-  /*background-size: 100%;
-  background-repeat: no-repeat;  */
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  z-index: 70;
+    /*background-size: 100%;
+    background-repeat: no-repeat;  */
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 70;
 }
 .mapCoord {
-  float:left;
-  height:9%;  /* i'm showing 11 y coordinates.  100/11 = 9%*/
-  width:9%;  /* i'm showing 11 x coordinates. 100/11 = 9% */
+    float:left;
+    height:9%;  /* i'm showing 11 y coordinates.  100/11 = 9%*/
+    width:9%;  /* i'm showing 11 x coordinates. 100/11 = 9% */
 }
 .mapCR {
-  float:none; /* fake a carriage return */
-  height:0%;
-  width:0%;
+    float:none; /* fake a carriage return */
+    height:0%;
+    width:0%;
 }
 
 #paperdoll {
-  background-color: yellow;
-  margin: 25% 0 0 25%;
-  position: absolute;
-  height: 40%;  
-  width: 40%;
-  z-index: 70;
+    background-color: yellow;
+    margin: 25% 0 0 25%;
+    position: absolute;
+    height: 40%;  
+    width: 40%;
+    z-index: 70;
 }
 
 #trade {
-  background-color: lightskyblue;
-  margin: 30% 0 0 50%;
-  position: absolute;
-  height: 40%;  
-  width: 40%;
-  z-index: 70;
+    background-color: lightskyblue;
+    margin: 30% 0 0 50%;
+    position: absolute;
+    height: 40%;  
+    width: 40%;
+    z-index: 70;
 }
-
