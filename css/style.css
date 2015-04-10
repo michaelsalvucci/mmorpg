@@ -178,7 +178,7 @@ background-color: lightyellow; /* remove later */
 
 #interactive {
   background-color: yellow;
-  margin: 700 0 0 700;
+  margin: 70% 0 0 70%; /*700 0 0 700;*/
   position: absolute;
   height: 50;
   width: 200;
@@ -195,7 +195,6 @@ background-color: lightyellow; /* remove later */
   overflow-y: scroll;
   z-index: 70;
 }
-
 .each_inventory {
   background-color: yellowgreen;
   margin: 2px;
@@ -221,8 +220,8 @@ background-color: lightyellow; /* remove later */
   right: 0;
   margin: auto;
   
-  height: 250px;
-  width: 200px;  
+  height: 45%; /*250px;*/
+  width: 40%; /*200px;  */
   z-index: 70;
 }
 
@@ -237,7 +236,7 @@ background-color: lightyellow; /* remove later */
 #map {
   /*map is currently 1280x1024*/
   background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
-  background: url(../images/map.png);
+  /*background: url(../images/map.png);*/
   
   opacity:0.5;
   
@@ -245,7 +244,6 @@ background-color: lightyellow; /* remove later */
   -webkit-border-radius:15px;
   -moz-border-radius:15px;*/
   margin: 0px 24px 24px 0px;
-  /*margin: 10 0 0 700;*/
   
   /*background-size: 100%;
   background-repeat: no-repeat;  */
@@ -256,29 +254,30 @@ background-color: lightyellow; /* remove later */
 }
 .mapCoord {
   float:left;
-  height:10%;  /* i'm showing 10 y coordinates */
-  width:10%;  /* i'm showing 10 x coordinates */
+  height:9%;  /* i'm showing 11 y coordinates.  100/11 = 9%*/
+  width:9%;  /* i'm showing 11 x coordinates. 100/11 = 9% */
 }
 .mapCR {
   float:none; /* fake a carriage return */
   height:0%;
   width:0%;
 }
+
 #paperdoll {
   background-color: yellow;
-  margin: 300 0 0 300;
+  margin: 25% 0 0 25%;
   position: absolute;
-  height: 200;  
-  width: 200;
+  height: 40%;  
+  width: 40%;
   z-index: 70;
 }
 
 #trade {
   background-color: lightskyblue;
-  margin: 300 0 0 600;
+  margin: 30% 0 0 50%;
   position: absolute;
-  height: 200;  
-  width: 200;
+  height: 40%;  
+  width: 40%;
   z-index: 70;
 }
 
