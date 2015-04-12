@@ -1,4 +1,15 @@
+/*jslint browser: true*/ /*global  $*/      // Ref. http://stackoverflow.com/questions/4071467/is-it-possible-to-validate-my-jquery-javascript-with-jslint 
 $(document).ready(function() {
+
+    var browserWidth = $(window).width();  // Ref. http://stackoverflow.com/questions/1038727/how-to-get-browser-width-using-javascript-code 
+    // change the width element in the #world
+    var adjustWorldXScale = browserWidth / 1280; // Assumes our world image is 1280px * 4 wide.
+    var adjustWorldXWidth = (browserWidth / 1280) * 1280;  // Assumes our world image is 1280px * 4 wide.
+    $("#world").css("width", adjustWorldXWidth + 'px');  // Adjusts the image's width to the actual browser's width
+
+    $("#world").css("background-size", browserWidth * 4 + 'px auto'); // w x h.  This stretches the x to the width of the user's browser
+    // or
+    // THIS COULD BE A SOLUTION IF THERE'S A PROBLEM: $("#world").css("background-size", adjustWorldXWidth * 4 + 'px auto'); // w x h
 
   var sessionId = "fail"; // Not logged in
   //alert('sessionId=' + sessionId);
@@ -225,10 +236,10 @@ $(document).ready(function() {
       // @TODO: And, since each press of the d key is 45 degrees for now...
       // @TODO: And, since moving to the right, means a negative shift in background position....
       // @TODO: We need to shift things by (45/90)*1280*-1= -640px
-      var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters
-      backgroundPos = backgroundPos - 640;
-      //alert(backgroundPos);
-      $('#world').css('backgroundPositionX', backgroundPos + 'px');
+        var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9.-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters.  Keeps the decimal point in the number now.
+        //backgroundPos = backgroundPos - 640;  // Old way
+        backgroundPos = Number(backgroundPos) - Number(browserWidth / 2);
+        $('#world').css('backgroundPositionX', backgroundPos + 'px');
     }
 
     if(code == 65 || code == 97) {  // a or A key pressed
@@ -239,8 +250,9 @@ $(document).ready(function() {
       // @TODO: And, since each press of the a key is -45 degrees for now...
       // @TODO: And, since moving to the left, means a positive shift in background position....
       // @TODO: We need to shift things by (45/90)*1280*+1= +640px
-      var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters
-      backgroundPos = backgroundPos + 640;
+      var backgroundPos = Number($('#world').css('backgroundPositionX').replace(/[^0-9.-]/g, '')); // Gets x coord of current background-position in css, AND it gets rid of the 'px' letters.  Keeps the decimal point in the number now.
+      //backgroundPos = backgroundPos + 640; // Old way
+      backgroundPos = Number(backgroundPos) + Number(browserWidth / 2);
       //alert(backgroundPos);
       $('#world').css('backgroundPositionX', backgroundPos + 'px');
     }

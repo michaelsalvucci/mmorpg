@@ -415,24 +415,29 @@
 
 
 
-/*
-    function isMapMonster(zoneId, i, j, callback) {
-      console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j='+j);
-      pool.getConnection(function(err, connection) {
-        var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
-        connection.query(sql, [zoneId, i, j], function(err, results) {
-          connection.release(); // always put connection back in pool right after the query
-          if(err) {
-            console.log(getFail() + ' isMapMonster:::err=' + err);
-            callback(false);
-          } else {
-            console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
-            callback(results);
-          }
+
+    function isMapMonster(zoneId, i, j) {
+        //console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(getFail() + ' isMapMonster:::err=' + err);
+                return false;
+            }
+            var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
+            connection.query(sql, [zoneId, i, j], function (err, results) {
+                connection.release(); // always put connection back in pool right after the query
+                //console.log(getPass() + ' isMapMonster:::sql=' + sql);
+                if (err) {
+                    console.log(getFail() + ' isMapMonster:::err=' + err);
+                    return false;
+                } else {
+                    //console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
+                    return results;
+                }
+            });
         });
-      });
-    };
-*/
+    }
+
 
 
 
@@ -1025,32 +1030,46 @@
                                 string = string.concat("<div class=mapCoord>M</div>");
                                 console.log(getPass() + sessionId + 'same position as me x=' + x + ' y=' + y + ' i=' + i + ' j=' + j);
                             } else {
-                                /*
+
+
+
+
                                 try {
-                                  // @todo isMapMonster
-                                  console.log('Attempting isMapMonster');
-                                  isMapMonster(zoneId, i, j, function(results) {
+                                    // @todo isMapMonster
+                                    console.log('Attempting isMapMonster');
+                                    var results = isMapMonster(zoneId, i, j);
+                                    var flagIsMapMonster = false;
                                     console.log(getPass() + ' xxxxxxxxxxxxresults=' + results);
-                                    if(results) {
-                                      var flagIsMapMonster = true;
+                                    if (results != false) {
+                                        flagIsMapMonster = true;
+                                        string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
                                     } else {
-                                      var flagIsMapMonster = false;
+                                        //var flagIsMapMonster = false;
+                                        string = string.concat("<div class=mapCoord>o</div>");
                                     }
-                                  }, function(flagIsMapMonster) {
-                                    if (flagIsMapMonster == false) {
-                                      //killAll();
-                                      // @todo isMapGatherable() - show gathering spot.  This is different from isGatherable.
-                                      // @todo isMapParty() - show party members
-                                      // @todo isMapNPC() // yellow dot?
-                                      // else show nothing...
-                                      }
-                                  });
+                                    //}//, function (flagIsMapMonster) {
+                                      //  if (flagIsMapMonster === false) {
+                                            //killAll();
+                                            // @todo isMapGatherable() - show gathering spot.  This is different from isGatherable.
+                                            // @todo isMapParty() - show party members
+                                            // @todo isMapNPC() // yellow dot?
+                                            // else show nothing...
+                                            //string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+                                        //} else {
+                                            //string = string.concat("<div class=mapCoord>o</div>");
+                                        //}
+                                    //});
+                                } catch (e) {
+                                    console.log(getFail() + 'hereiam2');
                                 }
-                                catch(e) {
-                                  console.log(getFAIL() + 'hereiam2');
-                                }
-                                */
-                                string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+
+//string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+
+
+
+
+
+
                             }
                         } catch (e) {
                             console.log(getFail() + 'hereiam');
