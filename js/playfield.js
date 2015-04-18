@@ -189,28 +189,28 @@ $(document).ready(function() {
   socket.on('resTurnRight', function(msg) {
     console.log(msg);
     var obj = $.parseJSON(msg);
-    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+    $('#compass').html('zoneID:' + obj.zoneId + ' &nbsp; x:' + obj.x + ' &nbsp;  y:' + obj.y + ' &nbsp;  z:' + obj.z + ' &nbsp; c:' + obj.c);
   });
 
   // Response from server on Turn Left request
   socket.on('resTurnLeft', function(msg) {
     console.log(msg);
     var obj = $.parseJSON(msg);
-    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+    $('#compass').html('zoneID:' + obj.zoneId + ' &nbsp; x:' + obj.x + ' &nbsp;  y:' + obj.y + ' &nbsp;  z:' + obj.z + ' &nbsp; c:' + obj.c);
   });
 
   // Response from server on Walk Forward request
   socket.on('resWalkForward', function(msg) {
     console.log(msg);
     var obj = $.parseJSON(msg);
-    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+    $('#compass').html('zoneID:' + obj.zoneId + ' &nbsp; x:' + obj.x + ' &nbsp;  y:' + obj.y + ' &nbsp;  z:' + obj.z + ' &nbsp; c:' + obj.c);
   });
 
   // Response from server on Walk Forward request
   socket.on('resWalkBackward', function(msg) {
     console.log(msg);
     var obj = $.parseJSON(msg);
-    $('#compass').html('X:' + obj.x + ' Y:' + obj.y + ' Z:' + obj.z + ' C:' + obj.c);
+    $('#compass').html('zoneID:' + obj.zoneId + ' &nbsp; x:' + obj.x + ' &nbsp;  y:' + obj.y + ' &nbsp;  z:' + obj.z + ' &nbsp; c:' + obj.c);
   });
 
   // Inventory 
@@ -260,14 +260,12 @@ $(document).ready(function() {
     if(code == 87 || code == 119) {  // w or W key pressed
       // walk forward
       socket.emit('walk forward', window.sessionId );
-      socket.emit('reqDrawMap', window.sessionId );
       map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 88 || code == 120) {  // x or X key pressed
       // walk backward
       socket.emit('walk backward', window.sessionId );
-      socket.emit('reqDrawMap', window.sessionId );
       map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
@@ -321,6 +319,18 @@ $(document).ready(function() {
 
     if(code == 85 || code == 117) {  // u or U key pressed
       $("#debug").toggle();
+    }
+
+    if(code == 87 || code == 119) {  // w or W key pressed
+      // walk forward
+      socket.emit('reqDrawMap', window.sessionId );
+      map.draggable();// have to do this again, because the class got wiped during the rewrite
+    }
+
+    if(code == 88 || code == 120) {  // x or X key pressed
+      // walk backward
+      socket.emit('reqDrawMap', window.sessionId );
+      map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 49) {  // 1 key pressed
@@ -387,14 +397,48 @@ $(document).ready(function() {
       </div>");
   });
 
+    socket.on('audioMonsterSFX', function(msg) {
+        //alert(msg);
+        var obj = $.parseJSON(msg);
+        $('#audioMonsterSFX').replaceWith("\
+          <div id=audioMonsterSFX>\
+            <audio autoplay=autoplay>\
+              <source src=/audio/"+obj.filename+" type="+obj.mimetype+">\
+            </audio>\
+        </div>");
+    });
+
+  socket.on('audioSoundtrack', function(msg) {
+    console.log('audioSoundtrack=' + msg);
+//    alert(msg);
+    $('#audioSoundtrack').replaceWith("\
+      <div id=audioSoundtrack>\
+        <audio autoplay=autoplay>\
+          <source src=/audio/"+msg+" type=audio/mp3>\
+        </audio>\
+      </div>");
+  });
+
+  socket.on('audioSystemMessage', function(msg) {
+    console.log('audioSystemMessage=' + msg);
+//    alert(msg);
+    $('#audioSystemMessage').replaceWith("\
+      <div id=audioSystemMessage>\
+        <audio autoplay=autoplay>\
+          <source src=/audio/"+msg+" type=audio/wav>\
+        </audio>\
+      </div>");
+  });
 
 
-
-
-
-
-
-
+    socket.on('monsterDraw', function(msg) {
+        //alert(msg);
+        var obj = $.parseJSON(msg);
+        $('#monsters').replaceWith("<div id=monsters style=\"background: url('"+obj.filename+"') no-repeat;background-color:transparent;height:200;width:200;margin: 650 0 0 650;opacity:0.9;position:absolute;z-index:10;\"></div>");
+    });
+    socket.on('monsterWipe', function(msg) {
+        $('#monsters').replaceWith("<div id=\"monsters\"></div>");
+    });
 
 });
 

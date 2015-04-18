@@ -21,6 +21,8 @@
         port = 1337,
         ip = "192.168.0.52",
         Promise = require('promise'),
+        async = require('async'),
+        _ = require('lodash'),
         io = require('socket.io')(http);   //var socket = require('socket.io-client')(ip);
 
     /*jslint nomen: true*/ // allow dangling _ in __dirname
@@ -343,7 +345,7 @@
         var stop = new Date().getTime();
         while (new Date().getTime() < stop + time) {
             // do nothing
-            console.log(getPass() + ' sleeping...');
+            //console.log(getPass() + ' sleeping...');
         }
         callback(true);
     }
@@ -387,6 +389,7 @@
                     // @TODO: Log the character out, and add a console abort message
                 }
                 console.log(getPass() + sessionId + ' exports.getUserCoordinates=' + util.inspect(results)); // useful for debugging
+                console.log('hahahazoneId=' + results[0].zoneId + ' x=' + results[0].x + ' y=' + results[0].y + ' z=' + results[0].z + ' c=' + results[0].c)
                 callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
             });
         });
@@ -416,12 +419,17 @@
 
 
 
-    function isMapMonster(zoneId, i, j) {
-        //console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+
+
+
+
+
+    exports.isMapMonster = function (zoneId, i, j, callback) {
+        console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(getFail() + ' isMapMonster:::err=' + err);
-                return false;
+                callback(false);
             }
             var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
             connection.query(sql, [zoneId, i, j], function (err, results) {
@@ -429,14 +437,17 @@
                 //console.log(getPass() + ' isMapMonster:::sql=' + sql);
                 if (err) {
                     console.log(getFail() + ' isMapMonster:::err=' + err);
-                    return false;
+                    callback(false);
                 } else {
-                    //console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
-                    return results;
+                    console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
+                    callback(results, zoneId, i, j);
                 }
             });
         });
-    }
+    };
+
+
+
 
 
 
@@ -627,6 +638,22 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // on server started we can load our client html page
     //app.get("/", function (req, res) {
     app.get("/", function (req, res) {
@@ -652,15 +679,31 @@
         console.log(getPass() + onlineClients + ' clients online');  // Every second, show the number of onlineClients
     }, 1000);
 
+    setInterval(function () {
+        //var filename="music/D.mp3";
+        //var filename="music/Ai+Vis+Lo+Lop.mp3";
+        //var filename="music/Embraced+By+The+Shadows.mp3";
+        //var filename="music/Frei.mp3";
+        var filename="Peasants+promise.mp3";
+        io.emit('audioSoundtrack', filename);
+    }, 90000);
+
     // HOURLY - Every 3,600 seconds, respawn the map.  Interestingly, if the server goes down, the map doesn't get respawned until an hour passes of successful running.
     setInterval(function () {
         console.log(getPass() + 'Hourly Cron Started');
+
+        var string="System\\ Respawning";
+        var filename="systemrespawning.wav";
+        execSync("/usr/bin/flite -t " + string + " -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
+        io.emit('audioSystemMessage', filename);
+
         spawnWipeGathers();
         spawnWipeMonsters();
 
         spawnInitializeGathers();
         spawnInitializeMonsters();
-    }, 6000);  // @todo SINCE WE'RE IN DEVELOPMENT, I'M CHANGING THIS FROM 3,600,000ms (1 hour) to 60,000ms (1 minute) to 6,000ms = 10 seconds
+        
+    }, 60000);  // @todo SINCE WE'RE IN DEVELOPMENT, I'M CHANGING THIS FROM 3,600,000ms (1 hour) to 60,000ms (1 minute) to 6,000ms = 10 seconds
 
 
 
@@ -786,6 +829,7 @@
                         // Is Dead?
                         if (damage >= results[row].hp) {
                             // Monster is dead - Drop Loot based on monsterId
+                            io.emit('monsterWipe');
                             io.emit('show interactive', '(F) Get Loot'); // Shows the interactive window
                             console.log(getPass() + sessionId + ' monster is dead');
                         } else {
@@ -955,7 +999,30 @@
                         + '}';
                 io.emit('resWalkForward', JSONobj);
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
-                // isGatherable(sessionId,zoneId,x,y,z);
+                //exports.isGatherable(sessionId, zoneId, x, y, z, function (result, ........ ))
+                if (x === 5 && y === 5) {
+                    var name = "Chicken";
+                    var filename = "/images/chicken.png";
+                    var JSONobj = '{'
+                        + '"zoneId" : ' + zoneId + ','
+                        + '"filename" : "' + filename + '",'
+                        + '"y" : ' + y + ','
+                        + '"z" : ' + z + ','
+                        + '"c" : ' + c
+                        + '}';
+                    io.emit('monsterDraw', JSONobj);
+                    
+                    var filename = "monster_sfx/chicken-1.wav";
+                    var mimetype = "audio/wav";
+                    var JSONobj = '{'
+                        + '"zoneId" : ' + zoneId + ','
+                        + '"filename" : "' + filename + '",'
+                        + '"y" : ' + y + ','
+                        + '"z" : ' + z + ','
+                        + '"mimetype" : "' + mimetype + '"'
+                        + '}';
+                    io.emit('audioMonsterSFX', JSONobj);
+                }
             });
         });
 
@@ -999,10 +1066,431 @@
 
 
 
-        socket.on('reqDrawMap', function (msg) {
+/* this is shit
+        function isCrapMonster(zoneId, i, j) {
+            //console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+            pool.getConnection(function (err, connection) {
+                if (err) {
+                    console.log(getFail() + ' isMapMonster:::err=' + err);
+                    return false;
+                }
+                var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
+                connection.query(sql, [zoneId, i, j], function (err, results) {
+                    connection.release(); // always put connection back in pool right after the query
+                    //console.log(getPass() + ' isMapMonster:::sql=' + sql);
+                    if (err) {
+                        console.log(getFail() + ' isMapMonster:::err=' + err);
+                        return false;
+                    } else {
+                        console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
+                        return true;
+                    }
+                });
+            });
+        }
+        function isMeHere(i, j, x, y) {
+            if ((i === x) && (j === y)) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+        socket.on('reqDrawMap', function (sessionId) {
+            async.waterfall([
+                function (callback) {
+                    exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
+                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
+                        callback(null, zoneId, x, y, z, c);
+                    });
+                },
+                function (zoneId, x, y, z, c, callback) {
+                    var i = x - 5,
+                        j = y + 5,
+                        string = "";
+                    for (j = y + 5; j > y - 6; j = j - 1) { // y-coordinate top to bottom
+                        for (i = x - 5; i < x + 6; i = i + 1) { // x-coordinate left to right
+                            console.log('zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' x=' + x + ' y=' + y);
+                            if ((i === x) && (j === y)) {
+                                string = string.concat("<div class=mapCoord>M</div>");
+                            } else {
+                                console.log('zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+
+                                pool.getConnection(function (err, connection) {
+                                    if (err) {
+                                        console.log(getFail() + ' :::err=' + err);
+                                    }
+                                    var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
+                                    connection.query(sql, [zoneId, i, j], function (err, results) {
+                                        connection.release(); // always put connection back in pool right after the query
+                                        //console.log(getPass() + ' isMapMonster:::sql=' + sql);
+                                        if (err) {
+                                            console.log(getFail() + ' :::err=' + err);
+                                        } else {
+                                            console.log(getPass() + ' :::results=' + util.inspect(results));
+                                            console.log(' zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' string=' + string);
+                                            if (results.length !== 0) {
+                                                string = string.concat("<div class=mapCoord><i class=icon-group></i></div>");
+                                            } else {
+                                                string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+                                            }
+
+                                        }
+                                    });
+                                });
+                            }
+                        }
+                        string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
+                    }
+                    callback(null, string, x, y);
+                },
+                function (string, x, y, callback) {
+                    var mapY,
+                        JSONobj;
+
+                    mapY = y - 724;
+
+                    JSONobj = '{'
+                            + '"string" : "' + string + '",'
+                            + '"x" : ' + x + ','
+                            + '"y" : ' + mapY
+                            + '}';
+                    io.emit('resDrawMap', JSONobj);
+                    callback(null, 'done');
+                }
+            ], function (err, result) {
+                if (err) {
+                    console.log('err=' + util.inspect(err));
+                }
+
+            });
+        });
+*/
+
+
+/* This is better but not perfect
+        socket.on('reqDrawMap', function (sessionId) {
+            console.log('exports.reqDrawMap sessionId=' + sessionId);
+            async.series([
+                function (callback) {
+                    exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
+                        //var results = {"zoneId" : zoneId, "x" : x, "y" : y, "z" : z, "c" : c};
+                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
+                        callback(null, zoneId, x, y, z, c);
+                    });
+//                },
+//                function (callback) {
+//                    callback(null, 'two');
+                }
+            ],
+                function (err, results) {
+                    console.log('ZZZZZoneId=' + results);
+//                    if (err) {
+//                        console.log('err=' + util.inspect(err));
+//                        //callback(false);
+//                    } else {
+                    console.log('zzzzzoneId=' + results[0][0] + ' x=' + results[0][1] + ' y=' + results[0][2] + ' z=' + results[0][3] + ' c=' + results[0][4]);
+                    var x = results[0][1],
+                        y = results[0][2],
+                        i = x - 5,
+                        j = y + 5;
+                    GLOBAL.string = '';
+                    for (j = y + 5; j > y - 6; j = j - 1) { // y-coordinate top to bottom
+                        for (i = x - 5; i < x + 6; i = i + 1) { // x-coordinate left to right
+                            async.series([
+                                function (callback) {
+                                    exports.isMapMonster(results[0][0], i, j, function (results, zoneId, i, j) {
+                                        console.log('rez=' + results + ' zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+                                        callback(results, zoneId, i, j);
+                                    });
+//                                    },
+//                                    function (callback) {
+//                                        callback(null, 'four');
+                                }
+                            ],
+                                function (results, coords) {
+                                    console.log('rezz=' + results + ' zoneId=' + coords[0][0] + ' i=' + coords[0][1] + ' j=' + coords[0][2]);
+                                    if (results.length !== 0) {
+                                        console.log('not empty' + util.inspect(results) + 'not empty' + results.length);
+                                        string = string.concat("<div class=mapCoord><i class=icon-group></i></div>");
+                                    } else {
+                                         string = string.concat("<div class=mapCoord>" + coords[0][1] + "," + coords[0][2]+ "</div>");
+                                    }
+//                                        if (err !== "undefined") {
+//                                            console.log('errr=' + util.inspect(err));
+//                                            //callback(false);
+//                                        } else {
+                                        //results now ['one','two']
+                                    console.log('results=' + results);
+                                    var mapY,
+                                        JSONobj;
+
+                                    mapY = y - 724;
+
+                                    JSONobj = '{'
+                                            + '"string" : "' + string + '",'
+                                            + '"x" : ' + x + ','
+                                            + '"y" : ' + mapY
+                                            + '}';
+                                    io.emit('resDrawMap', JSONobj);
+//                                        }
+                                });
+                        }
+                        string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
+                    }
+//                    }
+                });
+        });
+*/
+
+
+
+/* this is looking much better:
+        socket.on('reqDrawMap', function (sessionId) {
+            console.log('exports.reqDrawMap sessionId=' + sessionId);
+            async.series([
+                function (callback) {
+                    exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {
+                        //callback(null, 'one');
+                        callback(zoneId, x, y, z, c);
+                    });
+                },
+                function (callback) {
+                    callback(null, 'two');
+                }
+            ],
+                function (err, results) {
+                    if (err) {
+                        console.log('err=' + err);
+                        callback(false);
+                    } else {
+                        //results now ['one','two']
+                        console.log('results=' + results);
+                        var mapY,
+                            JSONobj,
+                            string = results,
+                            x = 0,
+                            y = 0;
+
+                        mapY = y - 724;
+
+                        JSONobj = '{'
+                                + '"string" : "' + string + '",'
+                                + '"x" : ' + x + ','
+                                + '"y" : ' + mapY
+                                + '}';
+                        io.emit('resDrawMap', JSONobj);
+                    }
+                }
+                );
+        });
+*/
+
+
+
+/* another failed attempt
+        exports.reqDrawMap = function (sessionId, callback) {
+            var zoneId = null,
+                x = null,
+                y = null,
+                z = null,
+                c = null;
+console.log('enter');
+            getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
+                complete();
+            });
+
+            function complete() {
+                if (zoneId !== null && x !== null && y !== null && z !== null && c !== null) {
+console.log('exit');
+                    callback(zoneId, x, y, z, c);
+                }
+            }
+        };
+        socket.on('reqDrawMap', function (sessionId) {
+            var mapY,
+                JSONobj,
+                string = 'hi' + exports.reqDrawMap(sessionId),
+                x = 0,
+                y = 0;
+
+            mapY = y - 724;
+
+            JSONobj = '{'
+                    + '"string" : "' + string + '",'
+                    + '"x" : ' + x + ','
+                    + '"y" : ' + mapY
+                    + '}';
+            io.emit('resDrawMap', JSONobj);  
+        });
+*/
+
+
+
+/* this doesn't work at all 
+        socket.on('reqDrawMap', function (sessionId) {
+            var finished = _.after(2, doRender); // If these two async functions are finished, doRender
+
+            exports.getUserCoordinates(sessionId, function(err, zoneId, x, y, z, c) {
+                if (err) {
+                    console.log('error');
+                }
+                var string = 'hello';
+                //
+                finished(zoneId, x, y, z, c, string);
+            });
+
+            exports.getUserCoordinates(sessionId, function(err, zoneId, x, y, z, c) {
+                if (err) {
+                    console.log('error');
+                }
+                var string = 'world';
+                //
+                finished(zoneId, x, y);
+            });
+
+            function doRender(zoneId, x, y, z, c, string) {
+                console.log('aaaaaaaaaaa zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c + ' string=' + string);
+                var mapY,
+                    JSONobj;
+                // Since the map's image is currently set to 1280x1024 and the h x w is 300x300,
+                // we take 300-1024 = -724, so we subtract that to force the image to begin
+                // in the bottom left corner.
+                mapY = y - 724;
+
+                JSONobj = '{'
+                        + '"string" : "' + string + '",'
+                        + '"x" : ' + x + ','
+                        + '"y" : ' + mapY
+                        + '}';
+                io.emit('resDrawMap', JSONobj);            
+            }
+        });
+*/
+
+
+/* THIS WORKS:
+        socket.on('reqDrawMap', function (sessionId) {
+            var finished = _.after(2, doRender); // If these two async functions are finished, doRender
+
+            exports.getUserCoordinates(sessionId, function(err, res) {
+                if(err) {
+                    console.log('error');
+                }
+                //
+                finished();
+            });
+            exports.getUserCoordinates(sessionId, function(err, res) {
+                if(err) {
+                    console.log('error');
+                }
+                //
+                finished();
+            });
+            function doRender() {
+                var string, x = 0, y = 0, mapY = 0, JSONobj;
+                string = 'hello world';
+                
+                    // Since the map's image is currently set to 1280x1024 and the h x w is 300x300,
+                    // we take 300-1024 = -724, so we subtract that to force the image to begin
+                    // in the bottom left corner.
+                    mapY = y - 724;
+
+                    JSONobj = '{'
+                            + '"string" : "' + string + '",'
+                            + '"x" : ' + x + ','
+                            + '"y" : ' + mapY
+                            + '}';
+                    io.emit('resDrawMap', JSONobj);
+            };
+        });
+*/
+
+
+/* this is broken:
+        exports.getMapIcon = function (sessionId, zoneId, i, j, x, y, callback) {
+            var string = '';
+            var flag = undefined;
+            for (j = y + 5; j > y - 6; j = j - 1) { // y-coordinate top to bottom
+                for (i = x - 5; i < x + 6; i = i + 1) { // x-coordinate left to right
+                    async.series({
+                        one: function (callback) {
+                            //console.log('a');
+                            callback(null, 'one');
+                        },
+                        isMapMonster: function (callback) {
+                            //console.log('Attempting isMapMonster');
+                            //console.log(getPass() + sessionId + ' Attempting isMapMonster x=' + x + ' y=' + y + ' i=' + i + ' j=' + j + ' zoneId=' + zoneId);
+                            exports.isMapMonster(zoneId, i, j, function (results, zoneId, i, j) {
+                                //console.log(getPass() + sessionId + ' Attempting isMapMonster zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' results=' + util.inspect(results));
+                                callback(null, results);
+                            });
+                        },
+                        three: function (callback) {
+                            //console.log('c');
+                            callback(null, 'three');
+                        }
+                    }, function (err, results) {
+                        if (err) {
+                            console.log(getFail() + 'async.series FAILED!');
+                        }
+                        console.log('i=' + i + ' j=' + j + ' results=' + util.inspect(results));
+                        if (results.isMapMonster !== false && Object.keys(results.isMapMonster).length > 0) {
+                            string = string.concat("<div class=mapCoord>o</div>");
+                            //string = 'a';
+                            console.log('isMapMonster=true');
+                        } else {
+                            string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+                            //string = 'b';
+                            console.log('isMapMonster=false');
+                        }
+                        console.log('isMapMonster=' + util.inspect(results.isMapMonster[0]));
+                        if ((j === (y - 6)) && (i === (x + 6))) {
+                            console.log('flag=1');
+                            flag = 1;
+                        } else {
+                            console.log('waiting' + i + j + x + y);
+                        }
+                    });
+                }
+                string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
+            }
+            sleep(2000, function(string) {
+                callback(string);
+            });
+        };
+
+        socket.on('reqDrawMap', function (sessionId) {
+            var i,
+                j,
+                mapY,
+                JSONobj,
+                results,
+                string = '';
+            exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
+                exports.getMapIcon(sessionId, zoneId, i, j, x, y, function (string) {
+                    console.log('yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy=' + string);
+                    // Since the map's image is currently set to 1280x1024 and the h x w is 300x300,
+                    // we take 300-1024 = -724, so we subtract that to force the image to begin
+                    // in the bottom left corner.
+                    mapY = y - 724;
+
+                    JSONobj = '{'
+                            + '"string" : "' + string + '",'
+                            + '"x" : ' + x + ','
+                            + '"y" : ' + mapY
+                            + '}';
+                    io.emit('resDrawMap', JSONobj);
+                });
+            });
+        });
+*/
+
+
+/*
+        socket.on('DEFUNKTreqDrawMap', function (msg) {
             var sessionId = msg,
-                string = "",
                 ISWHEREIAMSTANDING;
+
             console.log(getPass() + sessionId + ' resDrawMap: ' + msg);
 
             exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
@@ -1011,7 +1499,10 @@
             });
             function nowThatIKnowWhereIAmLocated(zoneId, x, y, z, c) {
                 var i,
-                    j;
+                    j,
+                    mapY,
+                    JSONobj,
+                    string = '';
                 console.log(getPass() + ' exports.getUserCoordinates:::zoneId=' + zoneId);
 
                 for (j = y + 5; j > y - 6; j = j - 1) { // y-coordinate top to bottom
@@ -1027,43 +1518,70 @@
                             }
                             if (ISWHEREIAMSTANDING === true) {
                                 // This means the position i'm testing is the same as mine
+                                //string = session.get('string');
                                 string = string.concat("<div class=mapCoord>M</div>");
+                                //session.set('string', string);
                                 console.log(getPass() + sessionId + 'same position as me x=' + x + ' y=' + y + ' i=' + i + ' j=' + j);
                             } else {
 
 
 
-
-                                try {
-                                    // @todo isMapMonster
-                                    console.log('Attempting isMapMonster');
-                                    var results = isMapMonster(zoneId, i, j);
-                                    var flagIsMapMonster = false;
-                                    console.log(getPass() + ' xxxxxxxxxxxxresults=' + results);
-                                    if (results != false) {
-                                        flagIsMapMonster = true;
-                                        string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
-                                    } else {
-                                        //var flagIsMapMonster = false;
-                                        string = string.concat("<div class=mapCoord>o</div>");
+                                async.series({
+                                    one: function (callback) {
+                                        console.log('a');
+                                        callback(null, 'one');
+                                    },
+                                    isMapMonster: function (callback) {
+                                        //console.log('Attempting isMapMonster');
+                                        console.log(getPass() + sessionId + ' Attempting isMapMonster x=' + x + ' y=' + y + ' i=' + i + ' j=' + j + ' zoneId=' + zoneId);
+                                        exports.isMapMonster(zoneId, i, j, function (results, zoneId, i, j) {
+                                            console.log(getPass() + sessionId + ' Attempting isMapMonster zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' results=' + util.inspect(results));
+                                            callback(null, results);
+                                        });
+                                    },
+                                    three: function (callback) {
+                                        console.log('c');
+                                        callback(null, 'three');
                                     }
-                                    //}//, function (flagIsMapMonster) {
-                                      //  if (flagIsMapMonster === false) {
-                                            //killAll();
-                                            // @todo isMapGatherable() - show gathering spot.  This is different from isGatherable.
-                                            // @todo isMapParty() - show party members
-                                            // @todo isMapNPC() // yellow dot?
-                                            // else show nothing...
-                                            //string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
-                                        //} else {
-                                            //string = string.concat("<div class=mapCoord>o</div>");
-                                        //}
-                                    //});
-                                } catch (e) {
-                                    console.log(getFail() + 'hereiam2');
-                                }
+                                }, function (err, results) {
+                                    if (err) {
+                                        console.log(getFail() + 'async.series FAILED!');
+                                    }
+                                    console.log('i=' + i + ' j=' + j + ' results=' + util.inspect(results));
+                                    if (results.isMapMonster !== false && Object.keys(results.isMapMonster).length > 0) {
+                                        string = string.concat("<div class=mapCoord>o</div>");
+                                        console.log('isMapMonster=true');
+                                    } else {
+                                        string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+                                        console.log('isMapMonster=false');
+                                    }
+                                    console.log('isMapMonster=' + util.inspect(results.isMapMonster[0]));
+                                });
 
-//string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+//                                try {
+//                                    // @todo isMapMonster
+//                                    console.log('Attempting isMapMonster');
+//                                    var results = isMapMonster(zoneId, i, j);
+//                                    var flagIsMapMonster = false;
+//                                    console.log(getPass() + ' xxxxxxxxxxxxresults=' + results);
+//                                    if (results != false) {
+//                                       flagIsMapMonster = true;
+//                                        //string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+//                                    } else {
+//                                        //var flagIsMapMonster = false;
+//                                        //string = string.concat("<div class=mapCoord>o</div>");
+//                                    }
+//
+//                                            // @todo isMapGatherable() - show gathering spot.  This is different from isGatherable.
+//                                            // @todo isMapParty() - show party members
+//                                            // @todo isMapNPC() // yellow dot?
+//                                            // else show nothing...
+//                                            //string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
+//                                } catch (e) {
+//                                    console.log(getFail() + 'hereiam2');
+//                                }
+
+                                string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
 
 
 
@@ -1078,26 +1596,20 @@
                     string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
                 }
 
-
-
-
-
-
-
-                // Since the image is currently set to 1280x1024 and the h x w is 300x300,
+                // Since the map's image is currently set to 1280x1024 and the h x w is 300x300,
                 // we take 300-1024 = -724, so we subtract that to force the image to begin
                 // in the bottom left corner.
-                y = y - 724;
+                mapY = y - 724;
 
-                var JSONobj = '{'
+                JSONobj = '{'
                         + '"string" : "' + string + '",'
                         + '"x" : ' + x + ','
-                        + '"y" : ' + y
+                        + '"y" : ' + mapY
                         + '}';
                 io.emit('resDrawMap', JSONobj);
             }
         });
-
+*/
 
 
 

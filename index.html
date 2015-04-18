@@ -16,8 +16,6 @@
   
   <script src="js/playfield.js"></script>
   
-
-
   <!--- This is required for resizable() -->
   <link rel="stylesheet" type="text/css" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
 
@@ -29,6 +27,9 @@
   <!--- @TODO: download and install this (to prevent permanent loss should they die) --->
   <link href='http://fonts.googleapis.com/css?family=IM+Fell+English|La+Belle+Aurore|IM+Fell+English+SC' rel='stylesheet' type='text/css'>
   
+  <!--- @TODO: download and install this (to prevent permanent loss should they die) --->
+  <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+  
 </head>
 
 <body>
@@ -39,6 +40,9 @@
   </form>
   
   <div id="audio" style="display:none">audio window</div>
+  <div id="audioMonsterSFX" style="display:none"></div>
+  <div id="audioSoundtrack" style="display:none"></div>
+  <div id="audioSystemMessage" style="display:none"></div>
   
   <div id="avatar">avatar window</div>
   
@@ -148,7 +152,7 @@
 
   <div id="landscape">
     <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="landscape" style="
+    <!---<div class="landscape" style="
       background: url('/images/shubbery01.png') no-repeat;
       background-color: transparent;
       height: 100%;
@@ -157,10 +161,10 @@
       opacity: 0.4;
       position: absolute;
       z-index: 0;">
-    </div>
+    </div> -->
 
     <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="landscape" style="
+    <!-- <div class="landscape" style="
       background: url('/images/shubbery01.png') no-repeat;
       background-color: transparent;
       height: 100%;
@@ -169,10 +173,10 @@
       opacity: 0.4;
       position: absolute;
       z-index: 0;">
-    </div>
+    </div> -->
 
     <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="landscape" style="
+    <!-- <div class="landscape" style="
       background: url('/images/shubbery01.png') no-repeat;
       background-color: transparent;
       height: 100%;
@@ -181,10 +185,10 @@
       opacity: 0.4;
       position: absolute;
       z-index: 0;">
-    </div>
+    </div> -->
     
     <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="landscape" style="
+    <!-- <div class="landscape" style="
       background: url('/images/shubbery01.png') no-repeat;
       background-color: transparent;
       height: 100%;
@@ -193,10 +197,10 @@
       opacity: 0.4;
       position: absolute;
       z-index: 0;">
-    </div>
+    </div> -->
     
     <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="landscape" style="
+    <!-- <div class="landscape" style="
       background: url('/images/shubbery01.png') no-repeat;
       background-color: transparent;
       height: 100%;
@@ -205,70 +209,10 @@
       opacity: 0.4;
       position: absolute;
       z-index: 0;">
-    </div>
+    </div> -->
   </div>
 
-  <div id="monsters">
-    <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="monsters" style="
-      background: url('/images/chicken.png') no-repeat;
-      background-color: transparent;
-      height: 200;
-      width: 200;
-      margin: 550 0 0 550;
-      opacity: 0.5;
-      -ms-transform: scale(.5,.5);
-      -webkit-transform: scale(.5,.5);
-      transform: scale(.5,.5);
-      position: absolute;
-      z-index: 10;">
-    </div>
-
-    <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="monsters" style="
-      background: url('/images/chicken.png') no-repeat;
-      background-color: transparent;
-      height: 200;
-      width: 200;
-      margin: 600 0 0 600;
-      opacity: 0.7;
-      -ms-transform: scale(.7,.7);
-      -webkit-transform: scale(.7,.7);
-      transform: scale(.7,.7);
-      position: absolute;
-      z-index: 10;">
-    </div>
-    
-    <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="monsters" style="
-      background: url('/images/chicken.png') no-repeat;
-      background-color: transparent;
-      height: 200;
-      width: 200;
-      margin: 650 0 0 650;
-      opacity: 0.9;
-      position: absolute;
-      z-index: 10;">
-    </div>
-    
-    <!-- SAMPLE CLASS INSERTS THAT NEED TO BE REPLACED AFTER DATABASE CALL IS SETUP -->
-    <div class="monsters" style="
-      background: url('/images/chicken.png') no-repeat;
-      background-color: transparent;
-      height: 200;
-      width: 200;
-      margin: 700 0 0 700;
-      opacity: 0.9;
-      -ms-transform: scale(.9,.9);
-      -webkit-transform: scale(.9,.9);
-      transform: scale(.9,.9);
-      -ms-transform: skewX(45deg);
-      -webkit-transform: skewX(45deg);
-      transform: skewX(45deg);
-      position: absolute;
-      z-index: 9;">
-    </div>
-  </div>
+  <div id="monsters"></div>
 
 
 <!-- FOR THE MUSIC LOVERS OUT THERE -->
