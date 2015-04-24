@@ -91,7 +91,12 @@ $(document).ready(function() {
 
   $('#paperdoll').hide();
   $('#paperdoll').draggable();
-
+  
+  $('#skill').hide();
+  $('#skill').draggable();
+  $('#skillExit').click(function(event) {
+      $('#skill').toggle();
+  });
   $('#playfield').on("beamMeUp", function(event) {
     //alert('beamMeUp,Scotty!' + $('.characterSelectItem').text());
     $('#characterSelect').hide();
@@ -99,8 +104,6 @@ $(document).ready(function() {
     // 20150225: Since we are about to show the world to the user, we need to load the monsters.
     // We need to send the zone the character is in, plus the character's x,y - DO WE LEGITIMATELY KNOW THIS HERE?
     socket.emit('getMonsters', null); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 
 
 
@@ -300,6 +303,11 @@ $(document).ready(function() {
       socket.emit('reqInventory',  window.sessionId );
       $("#inventory").toggle();
     }
+    
+    if(code == 75 || code == 107) {  // k or K key pressed
+      socket.emit('reqSkills',  window.sessionId );
+      $("#skill").toggle();
+    }
 
 // Disabled 'l' key because the login window appears upon start and is turned off after successful login
 //    if(code == 76 || code == 108) {  // l or L key pressed
@@ -367,7 +375,7 @@ $(document).ready(function() {
 
 
   /////////////////////////////////////////////////////////////////////////////
-  // OTHER
+  // OTHER SOCKET EVENTS
 
 
   socket.on('hide interactive', function(msg) {
@@ -448,6 +456,8 @@ $(document).ready(function() {
     socket.on('monsterWipe', function(msg) {
         $('#monsters').replaceWith("<div id=\"monsters\"></div>");
     });
+
+
 
 });
 

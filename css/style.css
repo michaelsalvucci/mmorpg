@@ -154,9 +154,11 @@ root {
 
 #debug {
     background-color: orange;
+    font-size: 1.125em;
     margin: 50px 0 0 100px;
     position: absolute;
     height: 300px;
+    opacity: 0.90;
     width: 200px;
     z-index: 70;
 }
@@ -172,10 +174,10 @@ root {
 
 #interactive {
     background-color: yellow;
-    margin: 70% 0 0 70%; /*700 0 0 700;*/
+    margin: 40% 0% 0% 60%; /*700 0 0 700;*/
     position: absolute;
-    height: 50px;
-    width: 200px;
+    height: 5%; /* 50px */
+    width: 20%; /*200px */
     z-index: 100;
 }
 
@@ -273,11 +275,45 @@ root {
 
 #paperdoll {
     background-color: yellow;
-    margin: 25% 0 0 25%;
+    margin: 20% 0 0 70%;
     position: absolute;
     height: 40%;  
     width: 40%;
     z-index: 70;
+}
+
+#skill {
+    background-color: pink;
+    margin: 25% 0 0 20%;
+    position: absolute;
+    height: 50%;
+    width: 60%;
+    z-index: 70;
+}
+#skillTitle {
+    background-color: lightblue;
+    float: left;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1.618em;
+    width: 95%;
+}
+#skillExit {
+    background-color: red;
+    float: left;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 2em;
+    text-align: center;
+    width: 5%;
+}
+#skillOwn {
+    background-color: lightcoral;
+    float: left;
+    width: 50%;
+}
+#skillQueued {
+    width: 50%;
+    background-color: lightgreen;
+    float: left;
 }
 
 #trade {

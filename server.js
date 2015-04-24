@@ -940,7 +940,7 @@
             });
         });
 
-        socket.on('turn left', function (msg) {   // d key pressed
+        socket.on('turn left', function (msg) {   // a key pressed
             var sessionId = msg;
             console.log(getPass() + sessionId + ' turn left: ' + msg);
             // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
@@ -1069,7 +1069,7 @@
 
 
 
-/* this is shit
+/* "This is shit" - Steve Jobs
         function isCrapMonster(zoneId, i, j) {
             //console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
             pool.getConnection(function (err, connection) {
