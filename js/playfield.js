@@ -293,6 +293,7 @@ $(document).ready(function() {
 
     if(code == 70 || code == 102) {  // f or F key pressed
       $("#interactive").toggle();
+      $('#monsterDamageNumber').hide();
     }
 
     if(code == 73 || code == 105) {  // i or I key pressed
@@ -431,6 +432,14 @@ $(document).ready(function() {
   });
 
 
+    socket.on('monsterDamageNumber', function(msg) {
+        $('#monsterDamageNumber').replaceWith("<div id=monsterDamageNumber style=\"display:inline\">"+msg+"</div>");
+        $('#monsterDamageNumber').fadeOut(1000);
+    });
+    socket.on('monsterDamageNumberWipe', function(msg) {
+        $('#monsterDamageNumber').replaceWith("<div id=\"monsterDamageNumber\" style=\"display:none\"></div>");
+    });
+    
     socket.on('monsterDraw', function(msg) {
         //alert(msg);
         var obj = $.parseJSON(msg);

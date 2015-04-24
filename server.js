@@ -283,7 +283,7 @@
                 results[row].xStart,
                 results[row].yStart,
                 0,
-                100
+                results[row].hp
             ], function getPassOrFail(err, results2) {
                 if (err) {
                     console.log(getFail() + 'Spawn Initialize Monsters2 err=' + err);
@@ -310,7 +310,8 @@
                 console.log(getFail() + 'spawnInitializeMonsters() ' + err);
                 return;
             }
-            var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
+            //var sql = "SELECT monsterId, zoneId, xStart, yStart FROM monsterSeeds";
+            var sql = "SELECT ms.monsterId AS monsterId, ms.zoneId AS zoneId, ms.xStart AS xStart, ms.yStart AS yStart, m.hp AS hp FROM monsterSeeds ms LEFT JOIN monsters m ON ms.monsterId = m.id;";
             connection.query(sql, [], function (err, results) {
                 var row,
                     sql2 = "INSERT INTO monsterPlants (monsterId, zoneId, x, y, z, hp) VALUES (?, ?, ?, ?, ?, ?)";
@@ -425,7 +426,7 @@
 
 
     exports.isMapMonster = function (zoneId, i, j, callback) {
-        console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+//        console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(getFail() + ' isMapMonster:::err=' + err);
@@ -439,7 +440,7 @@
                     console.log(getFail() + ' isMapMonster:::err=' + err);
                     callback(false);
                 } else {
-                    console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
+//                    console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
                     callback(results, zoneId, i, j);
                 }
             });
@@ -678,15 +679,16 @@
     setInterval(function () {
         console.log(getPass() + onlineClients + ' clients online');  // Every second, show the number of onlineClients
     }, 1000);
-
+/* sound too loud for Aron */
     setInterval(function () {
-        //var filename="music/D.mp3";
-        //var filename="music/Ai+Vis+Lo+Lop.mp3";
-        //var filename="music/Embraced+By+The+Shadows.mp3";
-        //var filename="music/Frei.mp3";
-        var filename="Peasants+promise.mp3";
+        //var filename = "music/D.mp3";
+        //var filename = "music/Ai+Vis+Lo+Lop.mp3";
+        //var filename = "music/Embraced+By+The+Shadows.mp3";
+        //var filename = "music/Frei.mp3";
+        var filename = "music/Peasants+promise.mp3"; // 90000 sounds great on this one
         io.emit('audioSoundtrack', filename);
     }, 90000);
+
 
     // HOURLY - Every 3,600 seconds, respawn the map.  Interestingly, if the server goes down, the map doesn't get respawned until an hour passes of successful running.
     setInterval(function () {
@@ -821,6 +823,7 @@
 
                         // Apply damage - for each monster id, send the damage (return 1 if dead), and see if i killed it (ie. loot bag drops)
                         exports.setMonsterPlantsDamage(results[row].id, newHp, damage, function (result) {
+                            io.emit('monsterDamageNumber', damage);
                             // simply just updates the hp (even if negative)
                             // Since I don't care about the result callback, I should probably not use a callback here
                             console.log(getPass() + sessionId + ' setMonsterPlantsDamage result=' + result);
@@ -1011,7 +1014,7 @@
                         + '"c" : ' + c
                         + '}';
                     io.emit('monsterDraw', JSONobj);
-                    
+
                     var filename = "monster_sfx/chicken-1.wav";
                     var mimetype = "audio/wav";
                     var JSONobj = '{'
@@ -1167,14 +1170,14 @@
 */
 
 
-/* This is better but not perfect
+/* This is better but not perfect */
         socket.on('reqDrawMap', function (sessionId) {
             console.log('exports.reqDrawMap sessionId=' + sessionId);
             async.series([
                 function (callback) {
                     exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
                         //var results = {"zoneId" : zoneId, "x" : x, "y" : y, "z" : z, "c" : c};
-                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
+//                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
                         callback(null, zoneId, x, y, z, c);
                     });
 //                },
@@ -1183,12 +1186,12 @@
                 }
             ],
                 function (err, results) {
-                    console.log('ZZZZZoneId=' + results);
+//                    console.log('ZZZZZoneId=' + results);
 //                    if (err) {
 //                        console.log('err=' + util.inspect(err));
 //                        //callback(false);
 //                    } else {
-                    console.log('zzzzzoneId=' + results[0][0] + ' x=' + results[0][1] + ' y=' + results[0][2] + ' z=' + results[0][3] + ' c=' + results[0][4]);
+//                    console.log('zzzzzoneId=' + results[0][0] + ' x=' + results[0][1] + ' y=' + results[0][2] + ' z=' + results[0][3] + ' c=' + results[0][4]);
                     var x = results[0][1],
                         y = results[0][2],
                         i = x - 5,
@@ -1199,7 +1202,7 @@
                             async.series([
                                 function (callback) {
                                     exports.isMapMonster(results[0][0], i, j, function (results, zoneId, i, j) {
-                                        console.log('rez=' + results + ' zoneId=' + zoneId + ' i=' + i + ' j=' + j);
+//                                        console.log('rez=' + results + ' zoneId=' + zoneId + ' i=' + i + ' j=' + j);
                                         callback(results, zoneId, i, j);
                                     });
 //                                    },
@@ -1208,7 +1211,7 @@
                                 }
                             ],
                                 function (results, coords) {
-                                    console.log('rezz=' + results + ' zoneId=' + coords[0][0] + ' i=' + coords[0][1] + ' j=' + coords[0][2]);
+//                                    console.log('rezz=' + results + ' zoneId=' + coords[0][0] + ' i=' + coords[0][1] + ' j=' + coords[0][2]);
                                     if (results.length !== 0) {
                                         console.log('not empty' + util.inspect(results) + 'not empty' + results.length);
                                         string = string.concat("<div class=mapCoord><i class=icon-group></i></div>");
@@ -1220,7 +1223,7 @@
 //                                            //callback(false);
 //                                        } else {
                                         //results now ['one','two']
-                                    console.log('results=' + results);
+//                                    console.log('results=' + results);
                                     var mapY,
                                         JSONobj;
 
@@ -1240,7 +1243,7 @@
 //                    }
                 });
         });
-*/
+
 
 
 

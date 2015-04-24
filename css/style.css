@@ -230,7 +230,7 @@ root {
 #map {
     /*map is currently 1280x1024*/
     background-color: rgb(41,244,24); /* green screen.  if you want blue screen, use rgb(24,71,241). */
-    /*background: url(../images/map.png);*/
+    background: url(../images/map.png);
   
     opacity:0.5;
   
@@ -255,6 +255,20 @@ root {
     float:none; /* fake a carriage return */
     height:0%;
     width:0%;
+}
+
+#monsterDamageNumber {
+    color: yellow;
+    /*background-color: red;*/
+    font-family: 'IM Fell English SC', serif;
+    font-size: 6em;
+    margin: 40% 45% 60% 55%;
+    position: absolute;
+    text-shadow: 4px 4px #ff0000;
+    /*height: 10%;*/
+    /*transform: translate(3em,6em);*/
+    /*width: 10%;*/
+    z-index: 100;
 }
 
 #paperdoll {
