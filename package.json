@@ -1,0 +1,12 @@
+{
+  "name": "mmorpg",
+  "version": "0.0.1",
+  "description": "some experiments",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/michaelsalvucci/mmorpg.git"
+  },
+  "devDependencies": {
+    "intern": "^2.2.2"
+  }
+}

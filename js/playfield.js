@@ -1,5 +1,31 @@
 /*jslint browser: true*/ /*global  $*/      // Ref. http://stackoverflow.com/questions/4071467/is-it-possible-to-validate-my-jquery-javascript-with-jslint 
-$(document).ready(function() {
+$(document).ready(function () {
+
+    /* Frames Per Second window - http://www.html5gamedevs.com/topic/1828-how-to-calculate-fps-in-plain-javascript/ */
+    var fps = {
+        startTime : 0,
+        frameNumber : 0,
+        getFPS : function () {
+            this.frameNumber = this.frameNumber + 1;
+            var d = new Date().getTime(),
+                currentTime = (d - this.startTime) / 1000,
+                result = Math.floor((this.frameNumber / currentTime));
+            if (currentTime > 1) {
+                this.startTime = new Date().getTime();
+                this.frameNumber = 0;
+            }
+            if (result < 30) { console.log('FPS slowing to ' + result); } /* console error message */
+            return result;
+        }
+    };
+    var f = document.querySelector("#fps");
+    function gameLoop() {
+        setTimeout(gameLoop, 1000 / 60);
+        f.innerHTML = fps.getFPS();
+    }
+    window.onload = gameLoop;
+
+
 
     var browserWidth = $(window).width();  // Ref. http://stackoverflow.com/questions/1038727/how-to-get-browser-width-using-javascript-code 
     // change the width element in the #world
@@ -11,12 +37,12 @@ $(document).ready(function() {
     // or
     // THIS COULD BE A SOLUTION IF THERE'S A PROBLEM: $("#world").css("background-size", adjustWorldXWidth * 4 + 'px auto'); // w x h
 
-  var sessionId = "fail"; // Not logged in
-  //alert('sessionId=' + sessionId);
+    var sessionId = "fail"; // Not logged in
+    //alert('sessionId=' + sessionId);
 
-  var compass = 0;
-  var x = 0;  // @TODO:  Need to really download their current x coordinate upon login
-  var y = 0;  // @TODO:  Need to really download their current y coordinate upon login
+    var compass = 0,
+        x = 0,  // @TODO:  Need to really download their current x coordinate upon login
+        y = 0;  // @TODO:  Need to really download their current y coordinate upon login
 
   var socket = io();  // used for chat, login, etc.
 
@@ -38,25 +64,35 @@ $(document).ready(function() {
   $('#characterSelect').draggable();
 
   $('#characterSelect').on("characterSelect.load", function(event) {
+//alert('characterSelect dot load i got asked to load this');
+//alert('session id = ' + window.sessionId + ' sessionId=' + $('#debug').find('div#sessionId').text() );
     $('#characterSelect').fadeIn(3000);
     // Show how many characters i have
-    socket.emit('reqCharacterList', window.sessionId);
+    if ( $('#debug').find('div#sessionId').text() == "" ) {  // IMPORTANT FIX:
+                                                             // To prevent multiple listings of your character list because two browsers are open,
+                                                             // if I came from the login screen (ie. this value is blank), then request the character list
+                                                             // @TODO:  Need to make sure the #debug field stays intact or is moved to another location
+                                                             // @TODO:  Still a bug when two browsers login at the exact same time, maybe the client show 
+                                                             // send a random partial sessionId upon login
+        socket.emit('reqCharacterList', window.sessionId);
+    };
   });
 
   socket.on('resCharacterList', function(msg) {
-    //console.log('resCharacterList=' + msg);
-    $('.characterSelectItem').replaceWith(msg);
-    //alert('ready');
-    $('.characterSelectItem').click( function() {
-      var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
-      window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
-      socket.emit('reqSpeakMyName', window.sessionId, window.charId);
-      $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div><div id=\"sessionId\">' + window.sessionId + '</div>');
-
-
-
-      $('#playfield').trigger('beamMeUp');  // User chose the character to load by clicking on it
-    });
+    if (window.sessionId != undefined) {
+    console.log('resCharacterList=' + msg);
+//    alert('foobar243tgavmsg=' + msg);
+//    alert('session id2 = ' + window.sessionId);
+        $('.characterSelectItem').replaceWith(msg);
+        //alert('ready');
+        $('.characterSelectItem').click( function() {
+          var playerName = $(this).closest($('.characterSelectItem')).find('span.name').text();
+          window.charId = $(this).closest($('.characterSelectItem')).find('span.charId').text();  // This is a global variable
+          socket.emit('reqSpeakMyName', window.sessionId, window.charId);
+          $('#debug').append('<div id=\"charId\">' + charId + '</div><div id=\"playerName\">' + playerName + '</div><div id=\"sessionId\">' + window.sessionId + '</div>');
+          $('#playfield').trigger('beamMeUp');  // User chose the character to load by clicking on it
+        });
+     };
   });
 
 
@@ -182,6 +218,19 @@ $(document).ready(function() {
     }
   });
 
+  // Received a log out message from the server.  Therefore, I need to test
+  // and see if the sessionId is legit because of it.
+  socket.on('resLogMeOut', function(msg) {
+    // alert('window.sessionId='+window.sessionId+' msg='+msg);
+    if (window.sessionId != undefined && window.sessionId != msg) {
+      // alert('hereiam msg=' + msg);
+      // If we needed to pull the document from the webserver again (such as 
+      // where the document contents change dynamically), we would pass the
+      // argument as 'true'.
+      window.location.reload(true);
+    }
+  });
+
   // chat functionality
   socket.on('chat message', function(msg) {
     //$('#messages').append($('<li>').text(msg));
@@ -263,13 +312,13 @@ $(document).ready(function() {
     if(code == 87 || code == 119) {  // w or W key pressed
       // walk forward
       socket.emit('walk forward', window.sessionId );
-      map.draggable();// have to do this again, because the class got wiped during the rewrite
+      //map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 88 || code == 120) {  // x or X key pressed
       // walk backward
       socket.emit('walk backward', window.sessionId );
-      map.draggable();// have to do this again, because the class got wiped during the rewrite
+      //map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
 
@@ -297,6 +346,7 @@ $(document).ready(function() {
     if(code == 70 || code == 102) {  // f or F key pressed
       $("#interactive").toggle();
       $('#monsterDamageNumber').hide();
+      socket.emit('reqInteractive', window.sessionId );
     }
 
     if(code == 73 || code == 105) {  // i or I key pressed
@@ -333,13 +383,13 @@ $(document).ready(function() {
     if(code == 87 || code == 119) {  // w or W key pressed
       // walk forward
       socket.emit('reqDrawMap', window.sessionId );
-      map.draggable();// have to do this again, because the class got wiped during the rewrite
+      //map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 88 || code == 120) {  // x or X key pressed
       // walk backward
       socket.emit('reqDrawMap', window.sessionId );
-      map.draggable();// have to do this again, because the class got wiped during the rewrite
+      //map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
 
     if(code == 49) {  // 1 key pressed
@@ -388,7 +438,7 @@ $(document).ready(function() {
   });
 
   socket.on('resDrawMap', function(msg) {
-      console.log(msg);
+      //console.log(msg);
       var obj = $.parseJSON(msg);
       // NOTE: This is a negative x position (denoted by -"+obj.x") and positive y position
       $('#map').replaceWith("<div id=map style=\"background-position-x:-"+obj.x+"px;background-position-y:"+obj.y+"px;\">" + obj.string + "</div>");

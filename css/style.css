@@ -172,6 +172,22 @@ root {
     z-index: 70;
 }
 
+#fps {
+    /*background-color: black;*/
+    color: goldenrod;
+    font-size: 6em;
+    font-family: arial, helvetica, serif;
+    text-shadow: 4px 4px #000000;
+    font-weight: bold;
+    margin: 30% 0% 0% 10%; /*700 0 0 700;*/
+    position: absolute;
+    height: 10%;
+    text-align: center;
+    vertical-align: middle;
+    width: 10%;
+    z-index: 70;
+}
+
 #interactive {
     background-color: yellow;
     margin: 40% 0% 0% 60%; /*700 0 0 700;*/
@@ -264,7 +280,8 @@ root {
     /*background-color: red;*/
     font-family: 'IM Fell English SC', serif;
     font-size: 6em;
-    margin: 40% 45% 60% 55%;
+    /*margin: 40% 45% 60% 55%;*/
+    margin: 40% 20% 20% 60%;
     position: absolute;
     text-shadow: 4px 4px #ff0000;
     /*height: 10%;*/
@@ -283,7 +300,7 @@ root {
 }
 
 #skill {
-    background-color: pink;
+    background-color: black;
     margin: 25% 0 0 20%;
     position: absolute;
     height: 50%;
@@ -291,28 +308,35 @@ root {
     z-index: 70;
 }
 #skillTitle {
-    background-color: lightblue;
+    /*background-color: black;*/
+    color: gold;
     float: left;
     font-family: 'IM Fell English SC', serif;
     font-size: 1.618em;
-    width: 95%;
+    height: 10%;
+    width: 97%;
 }
 #skillExit {
-    background-color: red;
+    /*background-color: black;*/
+    color: gold;
     float: left;
     font-family: 'IM Fell English SC', serif;
-    font-size: 2em;
-    text-align: center;
-    width: 5%;
+    font-size: 1.618em;
+    /*text-align: right;*/
+    width: 3%;
 }
 #skillOwn {
-    background-color: lightcoral;
+    /*background-color: black;*/
+    color: gold;
     float: left;
+    height: 80%;
+    overflow-y: scroll;
     width: 50%;
 }
 #skillQueued {
     width: 50%;
-    background-color: lightgreen;
+    /*background-color: black;*/
+    color: gold;
     float: left;
 }
 
