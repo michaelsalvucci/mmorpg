@@ -86,6 +86,14 @@
         return new Date().toMysqlFormat(); // DateTime in MySQL format
     }
 
+    /**
+     * greet()
+     * @returns {String}
+     * @todo pass in variable if i need to return a first name.  NOT REQUIRED AT THIS TIME
+     */
+    function greet() {
+        return "Hello, world!";
+    }
 
 
 
@@ -360,18 +368,17 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
-                callback(true);
-                return;
+                return callback(true);
             } // this should probably be false
             var sql = "DELETE FROM sessions WHERE userId = " + mysql.escape(userId) + ";INSERT INTO sessions (id, userId, dt) VALUES (" + mysql.escape(sessionId) + "," + mysql.escape(userId) + "," + mysql.escape(getTimestamp()) + ")";
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + 'err=' + err);
-                    callback(false);
+                    return callback(false);
                 } else {
                     console.log(getPass() + 'results=' + results);
-                    callback(sessionId);
+                    return callback(sessionId);
                 }
             });
         });
@@ -379,19 +386,26 @@
     exports.getUserCoordinates = function (sessionId, callback) {
         //console.log(getPass() + sessionId + ' exports.getUserCoordinates:::sessionId:' + sessionId);
         pool.getConnection(function (err, connection) {
-            if (err) { console.log(getFail() + sessionId + ' err=' + err); callback(true); return; } // this should probably be false
-            var sql = "SELECT zoneId, x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId);
+            if (err) {
+                console.log(getFail() + sessionId + ' err=' + err);
+                return callback(true); // this should probably be false
+            }
+            var sql = "SELECT zoneId, x, y, z, c FROM sessions WHERE id = " + mysql.escape(sessionId) + " LIMIT 1"; // 20160330: MS Added LIMIT 1 to enforce a session and logout other logins on the same account
+            console.log('sql=' + sql);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err || sessionId === null) { // NOTE: Testing for sessionId===null might give unintended consequences
                     console.log(getFail() + sessionId + ' exports.getUserCoordinates:::err=' + err);
-                    callback(true); // this should probably be set to false
-                    return; // don't think i need this
                     // @TODO: Log the character out, and add a console abort message
+
+io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to check and see if it's current
+
+                    return callback(true); // this should probably be set to false
                 }
+
                 console.log(getPass() + sessionId + ' exports.getUserCoordinates=' + util.inspect(results)); // useful for debugging
-                console.log('hahahazoneId=' + results[0].zoneId + ' x=' + results[0].x + ' y=' + results[0].y + ' z=' + results[0].z + ' c=' + results[0].c)
-                callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
+                console.log('hahahazoneId=' + results[0].zoneId + ' x=' + results[0].x + ' y=' + results[0].y + ' z=' + results[0].z + ' c=' + results[0].c);
+                return callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
             });
         });
     };
@@ -407,10 +421,10 @@
           connection.release(); // always put connection back in pool right after the query
           if(err) {
             console.log(getFail() + ' isMapMonster:::err=' + err);
-            callback(false);
+            return callback(false);
           } else {
             //console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
-            callback(results);
+            return callback(results);
           }
         });
       });
@@ -430,7 +444,7 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(getFail() + ' isMapMonster:::err=' + err);
-                callback(false);
+                return callback(false);
             }
             var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
             connection.query(sql, [zoneId, i, j], function (err, results) {
@@ -438,10 +452,10 @@
                 //console.log(getPass() + ' isMapMonster:::sql=' + sql);
                 if (err) {
                     console.log(getFail() + ' isMapMonster:::err=' + err);
-                    callback(false);
+                    return callback(false);
                 } else {
 //                    console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
-                    callback(results, zoneId, i, j);
+                    return callback(results, zoneId, i, j);
                 }
             });
         });
@@ -457,8 +471,8 @@
     exports.isMapMonster = function qryMonsterPlantsBasedOnzoneIdXY(zoneId, i, j, callback) {
       console.log('exports.isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
       pool.getConnection(function(err, connection) {
-      if(err) { console.log(getFail() + ' err=' + err); callback(err); return; } // this should probably be false (ie. test it both ways)
-      callback(true);
+      if(err) { console.log(getFail() + ' err=' + err); return callback(err); } // this should probably be false (ie. test it both ways)
+      return callback(true);
                                   //    var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
                                   //    connection.query(sql, [zoneId, i, j], string, function(err, results) {
                                   //console.log('rezx='+results);
@@ -469,15 +483,15 @@
     })
                                   //      if(err) {
                                   //        console.log(getFail() + ' isMapMonster=fail err='+err);
-                                  //        callback(false); // this should probably be set to false (ie. test it both ways)
+                                  //        return callback(false); // this should probably be set to false (ie. test it both ways)
                                   //        // @todo Log the character out, and add a console abort message???  No sessionId sent, so probably not required here.
                                   //      } else {
                                   //        if(results !="" && results != null) {
                                   //          console.log(getPass() + 'isMapMonster at i=' + i + ' j=' + j);
                                   //          console.log( getPass() + util.inspect(results) );
-                                  //          callback(string);
+                                  //          return callback(string);
                                   //        } else {
-                                  //          callback(false);
+                                  //          return callback(false);
                                   //        }
                                   //      }
                                   //    });
@@ -493,19 +507,19 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(getFail() + sessionId + ' err=' + err);
-                callback(false);
+                return callback(false);
             }
             var sql = "SELECT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName FROM characters c LEFT JOIN sessions s ON  s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err || sessionId === null) {  // NOTE: Testing for sessionId===null might give unintended consequences
                     console.log(getFail() + sessionId + ' exports.getCharacterList:::err=' + err);
-                    callback(false);
+                    return callback(false);
                     // @TODO: Log the character out, and add a console abort message
                 } else {
                     console.log(getPass() + sessionId + ' exports.getCharacterList=' + util.inspect(results)); // useful for debugging
                     //callback(results[0].charId, results[0].firstName, results[0].lastName);
-                    callback(results);
+                    return callback(results);
                 }
             });
         });
@@ -515,7 +529,7 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(getFail() + sessionId + ' err=' + err);
-                callback(false);
+                return callback(false);
             }
             var sql = "SELECT id, monsterId, hp FROM monsterPlants WHERE zoneId = " + mysql.escape(zoneId) + " AND x = " + mysql.escape(x) + " AND y = " + mysql.escape(y) + " AND z = " + mysql.escape(z) + " AND hp > 0";
             console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::sql=' + sql);
@@ -523,11 +537,11 @@
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + sessionId + ' exports.getMonstersNearMe:::err=' + err);
-                    callback(false);
+                    return callback(false);
                     // @todo: Log the character out, and add a console abort message
                 } else {
                     console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::results=' + util.inspect(results)); // useful for debugging
-                    callback(results);
+                    return callback(results);
                 }
             });
         });
@@ -536,20 +550,18 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
-                callback(true);
-                return;
+                return callback(true);
             }
             var sql = "SELECT id, password FROM users WHERE email = " + mysql.escape(email) + " LIMIT 1";
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + 'err=' + err);
-                    callback(true); // this should probably be set to false
-                    return;  // don't think i need this
+                    return callback(true); // this should probably be set to false
                 }
                 //console.log('results='+util.inspect(results)); // useful for debugging
                 //console.log('results = ' + results[0].password);
-                callback(results[0].id, results[0].password); // userId, password
+                return callback(results[0].id, results[0].password); // userId, password
             });
         });
     };
@@ -558,18 +570,18 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
-                callback(false);
+                return callback(false);
             }
             var sql = "SELECT c.firstName AS firstName, c.lastName AS lastName FROM characters c LEFT JOIN sessions s ON  s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId) + " AND c.id = " + mysql.escape(charId);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err || sessionId === null) {  // NOTE: Testing for sessionId===null might give unintended consequences
                     console.log(getFail() + sessionId + ' exports.getSpeakMyName:::err=' + err);
-                    callback(false);
+                    return callback(false);
                     // @TODO: Log the character out, and add a console abort message
                 } else {
                     console.log(getPass() + sessionId + ' exports.getSpeakMyName:::results=' + util.inspect(results)); // useful for debugging
-                    callback(results[0].firstName, results[0].lastName);
+                    return callback(results[0].firstName, results[0].lastName);
                 }
             });
         });
@@ -583,8 +595,7 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
-                callback(true);
-                return;
+                return callback(true);
             }
             var sql = "UPDATE monsterPlants SET hp = " + mysql.escape(hp) + " WHERE id = " + mysql.escape(id);
             console.log(getPass() + ' exports.setMonsterPlantsDamage:::sql = ' + sql);
@@ -592,11 +603,11 @@
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + ' exports.setMonsterPlantsDamage:::err=' + err);
-                    callback(false);
+                    return callback(false);
                     // @TODO: Log the character out, and add a console abort message
                 } else {
                     console.log(getPass() + 'exports.setMonsterPlantsDamage:::results=' + util.inspect(results)); // useful for debugging
-                    callback(true);
+                    return callback(true);
                 }
             });
         });
@@ -606,19 +617,18 @@
         pool.getConnection(function (err, connection) {
             if (err) {
                 console.log(err);
-                callback(true);
-                return;
+                return callback(true);
             }
             var sql = "UPDATE sessions SET zoneId=" + mysql.escape(zoneId) + ", x=" + mysql.escape(x) + ", y=" + mysql.escape(y) + ", z = " + mysql.escape(z) + ", c = " + mysql.escape(c) + " WHERE id = " + mysql.escape(sessionId);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + sessionId + ' exports.setUserCoordinates:::err=' + err);
-                    callback(false);
+                    return callback(false);
                     // @TODO: Log the character out, and add a console abort message
                 } else {
                     console.log(getPass() + sessionId + ' exports.setUserCoordinates:::results=' + util.inspect(results)); // useful for debugging
-                    callback(sessionId, zoneId, x, y, z, c);
+                    return callback(sessionId, zoneId, x, y, z, c);
                 }
             });
         });
@@ -631,7 +641,7 @@
         // exec("/usr/bin/flite -t "+string+" -o /var/www/mmorpg/audio/" + filename, puts);
         //console.log('exports.speak=' + prefix + firstName + lastName + filename);
         execSync("/usr/bin/flite -t " + string + " -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
-        callback(filename);
+        return callback(filename);
     };
 
 
@@ -666,7 +676,7 @@
 
 
     ///////////////////////////////////////////////////////////////////////////////
-    // INITTAB - The stuff that runs at startup
+    // PSUEDO INITTAB - This is the stuff that runs at startup
     ///////////////////////////////////////////////////////////////////////////////
     wipeAudioDynamic();
     console.log(getPass() + 'wipeAudioDynamic() started - this is a one-time event');
@@ -679,13 +689,17 @@
     setInterval(function () {
         console.log(getPass() + onlineClients + ' clients online');  // Every second, show the number of onlineClients
     }, 1000);
-/* sound too loud for Aron */
+
+
+
+/* Sound is too loud for Aron Shack, but turned on again */
+/* 20160330 MS:  Maybe this background music needs to be re-encoded at a lower volume level?  Just a thought */
     setInterval(function () {
-        //var filename = "music/D.mp3";
-        //var filename = "music/Ai+Vis+Lo+Lop.mp3";
-        //var filename = "music/Embraced+By+The+Shadows.mp3";
-        //var filename = "music/Frei.mp3";
-        var filename = "music/Peasants+promise.mp3"; // 90000 sounds great on this one
+        //var filename = "music/D.mp3"; // latino music
+        //var filename = "music/Ai+Vis+Lo+Lop.mp3"; // irish blabber
+        var filename = "music/Embraced+By+The+Shadows.mp3"; // siren repeated ad nauseum
+        //var filename = "music/Frei.mp3"; // foreign schlep
+        //var filename = "music/Peasants+promise.mp3"; // 90000 sounds great on this one
         io.emit('audioSoundtrack', filename);
     }, 90000);
 
@@ -1069,106 +1083,6 @@
 
 
 
-/* "This is shit" - Steve Jobs
-        function isCrapMonster(zoneId, i, j) {
-            //console.log(getPass() + ' isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
-            pool.getConnection(function (err, connection) {
-                if (err) {
-                    console.log(getFail() + ' isMapMonster:::err=' + err);
-                    return false;
-                }
-                var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
-                connection.query(sql, [zoneId, i, j], function (err, results) {
-                    connection.release(); // always put connection back in pool right after the query
-                    //console.log(getPass() + ' isMapMonster:::sql=' + sql);
-                    if (err) {
-                        console.log(getFail() + ' isMapMonster:::err=' + err);
-                        return false;
-                    } else {
-                        console.log(getPass() + ' isMapMonster:::results=' + util.inspect(results));
-                        return true;
-                    }
-                });
-            });
-        }
-        function isMeHere(i, j, x, y) {
-            if ((i === x) && (j === y)) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-        socket.on('reqDrawMap', function (sessionId) {
-            async.waterfall([
-                function (callback) {
-                    exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
-                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
-                        callback(null, zoneId, x, y, z, c);
-                    });
-                },
-                function (zoneId, x, y, z, c, callback) {
-                    var i = x - 5,
-                        j = y + 5,
-                        string = "";
-                    for (j = y + 5; j > y - 6; j = j - 1) { // y-coordinate top to bottom
-                        for (i = x - 5; i < x + 6; i = i + 1) { // x-coordinate left to right
-                            console.log('zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' x=' + x + ' y=' + y);
-                            if ((i === x) && (j === y)) {
-                                string = string.concat("<div class=mapCoord>M</div>");
-                            } else {
-                                console.log('zoneId=' + zoneId + ' i=' + i + ' j=' + j);
-
-                                pool.getConnection(function (err, connection) {
-                                    if (err) {
-                                        console.log(getFail() + ' :::err=' + err);
-                                    }
-                                    var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
-                                    connection.query(sql, [zoneId, i, j], function (err, results) {
-                                        connection.release(); // always put connection back in pool right after the query
-                                        //console.log(getPass() + ' isMapMonster:::sql=' + sql);
-                                        if (err) {
-                                            console.log(getFail() + ' :::err=' + err);
-                                        } else {
-                                            console.log(getPass() + ' :::results=' + util.inspect(results));
-                                            console.log(' zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' string=' + string);
-                                            if (results.length !== 0) {
-                                                string = string.concat("<div class=mapCoord><i class=icon-group></i></div>");
-                                            } else {
-                                                string = string.concat("<div class=mapCoord>" + i + "," + j + "</div>");
-                                            }
-
-                                        }
-                                    });
-                                });
-                            }
-                        }
-                        string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
-                    }
-                    callback(null, string, x, y);
-                },
-                function (string, x, y, callback) {
-                    var mapY,
-                        JSONobj;
-
-                    mapY = y - 724;
-
-                    JSONobj = '{'
-                            + '"string" : "' + string + '",'
-                            + '"x" : ' + x + ','
-                            + '"y" : ' + mapY
-                            + '}';
-                    io.emit('resDrawMap', JSONobj);
-                    callback(null, 'done');
-                }
-            ], function (err, result) {
-                if (err) {
-                    console.log('err=' + util.inspect(err));
-                }
-
-            });
-        });
-*/
-
 
 /* This is better but not perfect */
         socket.on('reqDrawMap', function (sessionId) {
@@ -1178,7 +1092,7 @@
                     exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
                         //var results = {"zoneId" : zoneId, "x" : x, "y" : y, "z" : z, "c" : c};
 //                        console.log('zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c);
-                        callback(null, zoneId, x, y, z, c);
+                        return callback(null, zoneId, x, y, z, c);
                     });
 //                },
 //                function (callback) {
@@ -1203,11 +1117,11 @@
                                 function (callback) {
                                     exports.isMapMonster(results[0][0], i, j, function (results, zoneId, i, j) {
 //                                        console.log('rez=' + results + ' zoneId=' + zoneId + ' i=' + i + ' j=' + j);
-                                        callback(results, zoneId, i, j);
+                                        return callback(results, zoneId, i, j);
                                     });
 //                                    },
 //                                    function (callback) {
-//                                        callback(null, 'four');
+//                                        return callback(null, 'four');
                                 }
                             ],
                                 function (results, coords) {
@@ -1220,7 +1134,7 @@
                                     }
 //                                        if (err !== "undefined") {
 //                                            console.log('errr=' + util.inspect(err));
-//                                            //callback(false);
+//                                            //return callback(false);
 //                                        } else {
                                         //results now ['one','two']
 //                                    console.log('results=' + results);
@@ -1247,24 +1161,24 @@
 
 
 
-/* this is looking much better:
+/* this is looking better:
         socket.on('reqDrawMap', function (sessionId) {
             console.log('exports.reqDrawMap sessionId=' + sessionId);
             async.series([
                 function (callback) {
                     exports.getUserCoordinates(sessionId, function(zoneId, x, y, z, c) {
                         //callback(null, 'one');
-                        callback(zoneId, x, y, z, c);
+                        return callback(zoneId, x, y, z, c);
                     });
                 },
                 function (callback) {
-                    callback(null, 'two');
+                    return callback(null, 'two');
                 }
             ],
                 function (err, results) {
                     if (err) {
                         console.log('err=' + err);
-                        callback(false);
+                        return callback(false);
                     } else {
                         //results now ['one','two']
                         console.log('results=' + results);
@@ -1290,85 +1204,9 @@
 
 
 
-/* another failed attempt
-        exports.reqDrawMap = function (sessionId, callback) {
-            var zoneId = null,
-                x = null,
-                y = null,
-                z = null,
-                c = null;
-console.log('enter');
-            getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {
-                complete();
-            });
-
-            function complete() {
-                if (zoneId !== null && x !== null && y !== null && z !== null && c !== null) {
-console.log('exit');
-                    callback(zoneId, x, y, z, c);
-                }
-            }
-        };
-        socket.on('reqDrawMap', function (sessionId) {
-            var mapY,
-                JSONobj,
-                string = 'hi' + exports.reqDrawMap(sessionId),
-                x = 0,
-                y = 0;
-
-            mapY = y - 724;
-
-            JSONobj = '{'
-                    + '"string" : "' + string + '",'
-                    + '"x" : ' + x + ','
-                    + '"y" : ' + mapY
-                    + '}';
-            io.emit('resDrawMap', JSONobj);  
-        });
-*/
 
 
 
-/* this doesn't work at all 
-        socket.on('reqDrawMap', function (sessionId) {
-            var finished = _.after(2, doRender); // If these two async functions are finished, doRender
-
-            exports.getUserCoordinates(sessionId, function(err, zoneId, x, y, z, c) {
-                if (err) {
-                    console.log('error');
-                }
-                var string = 'hello';
-                //
-                finished(zoneId, x, y, z, c, string);
-            });
-
-            exports.getUserCoordinates(sessionId, function(err, zoneId, x, y, z, c) {
-                if (err) {
-                    console.log('error');
-                }
-                var string = 'world';
-                //
-                finished(zoneId, x, y);
-            });
-
-            function doRender(zoneId, x, y, z, c, string) {
-                console.log('aaaaaaaaaaa zoneId=' + zoneId + ' x=' + x + ' y=' + y + ' z=' + z + ' c=' + c + ' string=' + string);
-                var mapY,
-                    JSONobj;
-                // Since the map's image is currently set to 1280x1024 and the h x w is 300x300,
-                // we take 300-1024 = -724, so we subtract that to force the image to begin
-                // in the bottom left corner.
-                mapY = y - 724;
-
-                JSONobj = '{'
-                        + '"string" : "' + string + '",'
-                        + '"x" : ' + x + ','
-                        + '"y" : ' + mapY
-                        + '}';
-                io.emit('resDrawMap', JSONobj);            
-            }
-        });
-*/
 
 
 /* THIS WORKS:
@@ -1418,19 +1256,19 @@ console.log('exit');
                     async.series({
                         one: function (callback) {
                             //console.log('a');
-                            callback(null, 'one');
+                            return callback(null, 'one');
                         },
                         isMapMonster: function (callback) {
                             //console.log('Attempting isMapMonster');
                             //console.log(getPass() + sessionId + ' Attempting isMapMonster x=' + x + ' y=' + y + ' i=' + i + ' j=' + j + ' zoneId=' + zoneId);
                             exports.isMapMonster(zoneId, i, j, function (results, zoneId, i, j) {
                                 //console.log(getPass() + sessionId + ' Attempting isMapMonster zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' results=' + util.inspect(results));
-                                callback(null, results);
+                                return callback(null, results);
                             });
                         },
                         three: function (callback) {
                             //console.log('c');
-                            callback(null, 'three');
+                            return callback(null, 'three');
                         }
                     }, function (err, results) {
                         if (err) {
@@ -1458,7 +1296,7 @@ console.log('exit');
                 string = string.concat("<div class=mapCR>&nbsp;</div>"); // NOTE: This is mapCR, the fake carriage return
             }
             sleep(2000, function(string) {
-                callback(string);
+                return callback(string);
             });
         };
 
@@ -1532,19 +1370,19 @@ console.log('exit');
                                 async.series({
                                     one: function (callback) {
                                         console.log('a');
-                                        callback(null, 'one');
+                                        return callback(null, 'one');
                                     },
                                     isMapMonster: function (callback) {
                                         //console.log('Attempting isMapMonster');
                                         console.log(getPass() + sessionId + ' Attempting isMapMonster x=' + x + ' y=' + y + ' i=' + i + ' j=' + j + ' zoneId=' + zoneId);
                                         exports.isMapMonster(zoneId, i, j, function (results, zoneId, i, j) {
                                             console.log(getPass() + sessionId + ' Attempting isMapMonster zoneId=' + zoneId + ' i=' + i + ' j=' + j + ' results=' + util.inspect(results));
-                                            callback(null, results);
+                                            return callback(null, results);
                                         });
                                     },
                                     three: function (callback) {
                                         console.log('c');
-                                        callback(null, 'three');
+                                        return callback(null, 'three');
                                     }
                                 }, function (err, results) {
                                     if (err) {
