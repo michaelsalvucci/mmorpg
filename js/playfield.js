@@ -218,6 +218,10 @@ $(document).ready(function () {
     }
   });
 
+  socket.on('heyAskForInventory', function(msg) {
+      socket.emit('reqInventory', window.sessionId );
+  });
+
   // Received a log out message from the server.  Therefore, I need to test
   // and see if the sessionId is legit because of it.
   socket.on('resLogMeOut', function(msg) {
@@ -268,6 +272,19 @@ $(document).ready(function () {
   // Inventory 
   socket.on('resInventory', function(msg) {
     console.log(msg);
+    if (window.sessionId != undefined) {
+        var obj = $.parseJSON(msg).resInventory;
+        console.log('obj='+obj);
+        var contents = "";
+        for(var i=0; i<obj.length; i++) {
+            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-itemId='1' title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+        }
+        $('#contents_inventory').replaceWith("\
+            <div id=contents_inventory>\
+                "+contents+"\
+            </div>\
+        ");
+    };
   });
 
 
@@ -350,12 +367,12 @@ $(document).ready(function () {
     }
 
     if(code == 73 || code == 105) {  // i or I key pressed
-      socket.emit('reqInventory',  window.sessionId );
+      socket.emit('reqInventory', window.sessionId );
       $("#inventory").toggle();
     }
     
     if(code == 75 || code == 107) {  // k or K key pressed
-      socket.emit('reqSkills',  window.sessionId );
+      socket.emit('reqSkills', window.sessionId );
       $("#skill").toggle();
     }
 
