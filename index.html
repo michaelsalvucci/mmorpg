@@ -47,7 +47,16 @@
   
   <div id="avatar">avatar window</div>
   
-  <div id="bank">bank window</div>
+  <div id="bank">
+    <div id="titlebar_bank">BANK</div>
+    <div id="bankExit"><i class="icon-collapse"></i></div>
+    <div id="myBackpack">
+      <div class="myBackpackItem"></div>
+    </div>
+    <div id="myBank">
+      <div class="myBankItem"></div>
+    </div>
+  </div>
 
   <div id="characterSelect">
     <div class="characterSelectItem"></div>
@@ -61,16 +70,6 @@
       <input id="message">
     </div>
   </div>
-  <!--
-  <div id="chat">
-    <div id="titlebar_chat">CHAT</div>
-    <div id="messages" style="height:125px;max-height:125px;overflow-y:auto;padding:2px 2px 20px 2px;"></div>
-    <div id="contents_message" style="padding:10px 2px 2px 2px;">
-      <div id="talkTo"></div>
-      <input id="message" style="width:90%;">
-    </div>
-  </div>
-  -->
   <div id="debug">
     deb<u><b>u</b></u>g window (aka News)<br>
     April 2016 Alpha Build<br>
@@ -88,9 +87,8 @@
   <div id="interactive">interactive window</div>
 
   <div id="inventory">
-    <div id="titlebar_inventory">
-      INVENTORY
-    </div>
+    <div id="titlebar_inventory">INVENTORY</div>
+    <div id="inventoryExit"><i class="icon-collapse"></i></div>
     <div id="contents_inventory">
       <div class="each_inventory" data-itemid="1" title="32 Apples" style="background: url('/images/items/apple.gif');height:32px;width:32px;z-index:90;"></div>
       <div class="each_inventory" data-itemid="2"></div>
@@ -213,7 +211,9 @@
           amet<br>
           consectetur<br>
       </div>
-      <div id="skillQueued">zxcvzvzxvzxcv</div>
+      <div id="skillQueued">
+      zxcvzvzxvzxcv
+      </div>
     </div>
   
   <div id="trade">trade window</div>

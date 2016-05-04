@@ -371,7 +371,7 @@
                 console.log(err);
                 return callback(true);
             } // this should probably be false
-io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad sessionId to the client to check and see if the client's browser is current
+//io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad sessionId to the client to check and see if the client's browser is current
             var sql = "DELETE FROM sessions WHERE userId = " + mysql.escape(userId) + ";INSERT INTO sessions (id, userId, dt) VALUES (" + mysql.escape(sessionId) + "," + mysql.escape(userId) + "," + mysql.escape(getTimestamp()) + ")";
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
@@ -590,7 +590,7 @@ io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad s
             }
 
 
-io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to the client to check and see if the client's browser is current
+//io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to the client to check and see if the client's browser is current
 
 var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName FROM characters c RIGHT JOIN sessions s ON s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId);
 
@@ -610,6 +610,28 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         });
     };
 
+    exports.getBank = function (sessionId, userId, charId, callback) {
+        console.log(getPass() + sessionId + ' exports.getBank:::sessionId:' + sessionId + 'userId' + userId + 'charId' + charId);
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(getFail() + sessionId + ' err=' + err);
+                return callback(false);
+            }
+            var sql = "SELECT b.itemId, i.name, i.image, b.quantity FROM bank b LEFT JOIN items i ON b.itemId = i.id WHERE b.charId = " + mysql.escape(charId);
+            console.log(getPass() + sessionId + ' exports.getBank:::sql=' + sql);
+            connection.query(sql, [], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                if (err) {
+                    console.log(getFail() + sessionId + ' exports.getBank:::err=' + err);
+                    return callback(false);
+                } else {
+                    console.log(getPass() + sessionId + ' exports.getBank:::results=' + util.inspect(results)); // useful for debugging
+                    return callback(results);
+                }
+            });
+        });
+    };
+
 
     exports.getInventory = function (sessionId, userId, charId, callback) {
         console.log(getPass() + sessionId + ' exports.getInventory:::sessionId:' + sessionId + 'userId' + userId + 'charId' + charId);
@@ -623,7 +645,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
-                    console.log(getFail() + sessionId + ' exports.Inventory:::err=' + err);
+                    console.log(getFail() + sessionId + ' exports.getInventory:::err=' + err);
                     return callback(false);
                 } else {
                     console.log(getPass() + sessionId + ' exports.getInventory:::results=' + util.inspect(results)); // useful for debugging
@@ -710,7 +732,13 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 }
                 //console.log('results='+util.inspect(results)); // useful for debugging
                 //console.log('results = ' + results[0].password);
-                return callback(results[0].itemId);
+                if (results.length === 0) {
+                    //console.log('results are undefined');
+                    return callback(false);
+                } else {
+                    //console.log('results are not undefined');
+                    return callback(results[0].itemId);
+                }
             });
         });
     };
@@ -877,12 +905,12 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
 
 
-/* Sound is too loud for Aron Shack, but turned on again */
-/* 20160330 MS:  Maybe this background music needs to be re-encoded at a lower volume level?  Just a thought */
+    /* Sound is too loud for Aron Shack, but turned on again */
+    /* 20160330 MS:  Maybe this background music needs to be re-encoded at a lower volume level?  Just a thought */
     setInterval(function () {
 
         var min = 1,
-            max = 12, // If this is 696969, set it to the correct number
+            max = 12, // If this is 696969, set it to the correct number.  If it's set to 696969, it's to disable the music during programming.
             random_number = Math.floor(Math.random() * (max - min + 1)) + min,
             filename = "";
         switch (random_number) {
@@ -949,7 +977,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
     // W E B   S O C K E T   C O N N E C T I O N
     ///////////////////////////////////////////////////////////////////////////////
     io.on('connection', function (socket) {
-        console.log(getPass() + 'user connected from ' + util.inspect(socket.handshake.headers));
+        console.log(getPass() + 'user connected from ' + util.inspect(socket.handshake.address) + ' using ' + util.inspect(socket.handshake.headers['user-agent']));
         onlineClients = onlineClients + 1;
 
         /////////////////////////////////////////////////////////////////////////////
@@ -957,7 +985,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         /////////////////////////////////////////////////////////////////////////////
         socket.on('disconnect', function () {
             onlineClients = onlineClients - 1;
-            console.log(getPass() + 'user disconnected from ' + util.inspect(socket.handshake.headers));
+            console.log(getPass() + 'user disconnected from ' +  util.inspect(socket.handshake.address) + ' using ' + util.inspect(socket.handshake.headers['user-agent']));
         });
 
         /////////////////////////////////////////////////////////////////////////////
@@ -1152,15 +1180,45 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         console.log(getPass() + sessionId + ' getUserIdAndCharId:::sessionId=' + sessionId + ' userId=' + userId + ' charId=' + charId);
 
                         var quantity = 1;
-
-                        exports.insertLootIntoBackpack(sessionId, zoneId, x, y, z, c, itemId, userId, charId, quantity, function (result) {  // The callback is sending us result
-                            console.log(getPass() + sessionId + ' insertLootIntoBackpack ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c + ' result=' + result);
-                            io.emit('heyAskForInventory', msg);
-                        });
+                        if (itemId !== 0) {
+                            exports.insertLootIntoBackpack(sessionId, zoneId, x, y, z, c, itemId, userId, charId, quantity, function (result) {  // The callback is sending us result
+                                console.log(getPass() + sessionId + ' insertLootIntoBackpack ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c + ' result=' + result);
+                                io.emit('heyAskForInventory', msg);
+                            });
+                        }
                     });
                 });
             });
         });
+
+
+        /////////////////////////////////////////////////////////////////////////////
+        // BANK
+        /////////////////////////////////////////////////////////////////////////////
+        socket.on('reqBank', function (msg) {
+            var sessionId = msg;
+            exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+                exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId, charId
+                    exports.getInventory(sessionId, userId, charId, function (results) {  // The callback is sending us results
+                        console.log('results=' + util.inspect(results));
+                        var JSONobj = JSON.stringify({
+                            resBankMyBackpack: results
+                        });
+                        io.emit('resBankMyBackpack', JSONobj);
+
+                        exports.getBank(sessionId, userId, charId, function (results) {  // The callback is sending us results
+                            console.log('results=' + util.inspect(results));
+                            var JSONobj = JSON.stringify({
+                                resBankMyBank: results
+                            });
+                            io.emit('resBankMyBank', JSONobj);
+                        });
+
+                    });
+                });
+            });
+        });
+
 
 
         /////////////////////////////////////////////////////////////////////////////
@@ -1183,21 +1241,16 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     + '"quantity" : ' + '1'
                     + '}'
                     + ']';
+            io.emit('resInventory', JSONobj);
 */
-            // @TODO:  Right now, we're faking the results, but this needs to be a db lookup
-            //console.log('reqInventory: ' + msg);
-            // Get Coordinates based on SessionId
             exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
                 exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId, charId
                     exports.getInventory(sessionId, userId, charId, function (results) {  // The callback is sending us results
-                        //4/28/2016 LET'S TRY THIS....            
                         console.log('results=' + util.inspect(results));
                         var JSONobj = JSON.stringify({
                             resInventory: results
                         });
-
                         io.emit('resInventory', JSONobj);
-                        //console.log(getPass() + sessionId + ' insertLootIntoBackpack ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c + ' result=' + result);
                     });
                 });
             });
@@ -1301,11 +1354,13 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
                 exports.isGatherable(sessionId, zoneId, x, y, z, function (results) {
                     console.log('results = ', results);
-                    if (results !== ' [] ') {
+                    if (results.length !== 0) {
                         var row;
                         for (row = 0; row < results.length; row = row + 1) {
                             io.emit('show interactive', '(F) Get Loot'); // Shows the interactive window
                         }
+                    } else {
+                      io.emit('hide interactive', msg);
                     }
                 });
 

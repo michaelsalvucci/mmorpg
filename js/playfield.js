@@ -55,6 +55,9 @@ $(document).ready(function () {
   $('#bank').hide();
   $('#bank').resizable();
   $('#bank').draggable();
+  $('#bankExit').click(function(event) {
+      $('#bank').toggle();
+  });
 
   $('#chat').hide();
   $('#chat').resizable();
@@ -109,9 +112,9 @@ $(document).ready(function () {
 
   $('#inventory').hide();
   $('#inventory').draggable();
-  ////$('#contents_inventory').draggable();
-  //$('.each_inventory').draggable();
-  $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+  $('#inventoryExit').click(function(event) {
+      $('#inventory').toggle();
+  });
 
   $('#landscape').hide();
 
@@ -269,15 +272,55 @@ $(document).ready(function () {
     $('#compass').html('zoneID:' + obj.zoneId + ' &nbsp; x:' + obj.x + ' &nbsp;  y:' + obj.y + ' &nbsp;  z:' + obj.z + ' &nbsp; c:' + obj.c);
   });
 
+
+
+  // Bank
+  socket.on('resBankMyBackpack', function(msg) {
+    console.log(msg);
+    if (window.sessionId != undefined) {
+        var obj = $.parseJSON(msg).resBankMyBackpack;
+        var contents = "";
+        for(var i=0; i<obj.length; i++) {
+            contents = contents + "<div class='myBackpackItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+        }
+        $('#myBackpack').replaceWith("\
+            <div id=myBackpack>\
+                "+contents+"\
+            </div>\
+        ");
+    };
+   // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
+   $('.myBackpackItem').draggable({containment: "#myBank", snap:".myBankItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+  });
+
+  socket.on('resBankMyBank', function(msg) {
+    console.log(msg);
+    if (window.sessionId != undefined) {
+        var obj = $.parseJSON(msg).resBankMyBank;
+        var contents = "";
+        for(var i=0; i<obj.length; i++) {
+            contents = contents + "<div class='myBankItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+        }
+        $('#myBank').replaceWith("\
+            <div id=myBank>\
+                "+contents+"\
+            </div>\
+        ");
+    };
+   // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
+   $('.myBankItem').draggable({containment: "#myBackpack", snap:".myBackpackItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+  });
+
+
+
   // Inventory 
   socket.on('resInventory', function(msg) {
     console.log(msg);
     if (window.sessionId != undefined) {
         var obj = $.parseJSON(msg).resInventory;
-        console.log('obj='+obj);
         var contents = "";
         for(var i=0; i<obj.length; i++) {
-            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-itemId='1' title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
         }
         $('#contents_inventory').replaceWith("\
             <div id=contents_inventory>\
@@ -285,6 +328,8 @@ $(document).ready(function () {
             </div>\
         ");
     };
+   // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
+   $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
   });
 
 
@@ -350,6 +395,7 @@ $(document).ready(function () {
 
     if(code == 66 || code == 98) {  // b or B key pressed
       $("#bank").toggle();  // simply toggles the visibility of the element
+      socket.emit('reqBank', window.sessionId );
     }
 
     if(code == 67 || code == 99) {  // c or C key pressed
@@ -445,7 +491,7 @@ $(document).ready(function () {
   // OTHER SOCKET EVENTS
 
 
-  socket.on('hide interactive', function(msg) {
+  socket.on('hide interactive', function() {
     $("#interactive").hide();
   });
 
