@@ -47,6 +47,15 @@ $(document).ready(function () {
   var socket = io();  // used for chat, login, etc.
 
 
+
+// This sets the Session Id
+socket.on('resSessionId', function(msg) {
+    window.sessionId = msg;
+    console.log('sessionId = ' + window.sessionId);
+});
+
+
+
   // These two lines disable the browser's scrollbars
   document.documentElement.style.overflow = 'hidden';
   document.body.scroll = "no";
@@ -84,7 +93,7 @@ $(document).ready(function () {
   socket.on('resCharacterList', function(msg) {
     if (window.sessionId != undefined) {
     console.log('resCharacterList=' + msg);
-//    alert('foobar243tgavmsg=' + msg);
+//    alert('msg=' + msg);
 //    alert('session id2 = ' + window.sessionId);
         $('.characterSelectItem').replaceWith(msg);
         //alert('ready');
@@ -195,13 +204,15 @@ $(document).ready(function () {
     var postData = { "email": $('#login_email').val(), "password" : $('#login_password').val() }
     $('#login').hide();
     socket.emit('login', JSON.stringify(postData) );
+    console.log('sessionId = ' + window.sessionId);
   });
   // login - receiving information from the server
   socket.on('login response', function(msg) {
     if(msg != "fail") {
       // Then, I passed the login process
-      window.sessionId = msg; // This is a global variable
-
+      console.log('sessionId = ' + window.sessionId);
+//      window.sessionId = msg; // This is a global variable
+      console.log('sessionId = ' + window.sessionId);
       //alert(window.sessionId);
       //$('#login_err').html('SUCCESS!');
 

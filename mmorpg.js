@@ -371,7 +371,7 @@
                 console.log(err);
                 return callback(true);
             } // this should probably be false
-//io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad sessionId to the client to check and see if the client's browser is current
+//io.to(socket.id).emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad sessionId to the client to check and see if the client's browser is current
             var sql = "DELETE FROM sessions WHERE userId = " + mysql.escape(userId) + ";INSERT INTO sessions (id, userId, dt) VALUES (" + mysql.escape(sessionId) + "," + mysql.escape(userId) + "," + mysql.escape(getTimestamp()) + ")";
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
@@ -590,7 +590,7 @@
             }
 
 
-//io.emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to the client to check and see if the client's browser is current
+//io.to(socket.id).emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to the client to check and see if the client's browser is current
 
 var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName FROM characters c RIGHT JOIN sessions s ON s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId);
 
@@ -951,7 +951,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             filename = ""; // quietness
             break;
         }
-        io.emit('audioSoundtrack', filename);
+        io.to(socket.id).emit('audioSoundtrack', filename);
     }, 90000);
 
 
@@ -962,7 +962,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         var string = "System\\ Respawning",
             filename = "systemrespawning.wav";
         execSync("/usr/bin/flite -t " + string + " -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
-        io.emit('audioSystemMessage', filename);
+        io.to(socket.id).emit('audioSystemMessage', filename);
 
         spawnWipeGathers();
         spawnWipeMonsters();
@@ -977,7 +977,10 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
     // W E B   S O C K E T   C O N N E C T I O N
     ///////////////////////////////////////////////////////////////////////////////
     io.on('connection', function (socket) {
-        console.log(getPass() + 'user connected from ' + util.inspect(socket.handshake.address) + ' using ' + util.inspect(socket.handshake.headers['user-agent']));
+
+        io.to(socket.id).emit('resSessionId', socket.id);
+
+        console.log(getPass() + ' socket.id=' + socket.id  + ' user connected from ' + util.inspect(socket.handshake.address) + ' using ' + util.inspect(socket.handshake.headers['user-agent']));
         onlineClients = onlineClients + 1;
 
         /////////////////////////////////////////////////////////////////////////////
@@ -993,7 +996,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         /////////////////////////////////////////////////////////////////////////////
         socket.on('chat message', function (msg) {
             //console.log(getPass() + 'message: ' + msg);
-            io.emit('chat message', msg);
+            io.emit('chat message', msg);  // This sends the message to global chat
         });
 
         /////////////////////////////////////////////////////////////////////////////
@@ -1011,31 +1014,35 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             exports.getPassword(parsed.email, function (userId, realPassword) { // the result from the callback is userId and realPassword
                 // Generate sessionId
                 var sessionId = "",
-                    possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
-                    i,
+//                    possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
+//                    i,
                     response = "fail";
-                //console.log('DEBUG5 result='+userId); // useful for debugging
-                //console.log('DEBUG6 result='+realPassword); // useful for debugging
                 if (realPassword === parsed.password) {
                     //response = "pass";
                     //var now = new Date().getTime();
                     //console.log(getPass() + parsed.email + ' passed login with userId ' + userId);
 
+                    /* OLD WAY:
                     // @TODO:  Session ID is only 5 alphanumeric characters right now.  This needs to be increased higher later.
                     for (i = 0; i < 5; i = i + 1) {
                         sessionId += possible.charAt(Math.floor(Math.random() * possible.length));
                     }
-
                     // Insert sessionId into db
-
                     exports.generateSession(sessionId, userId, function (sessionId) { // the response is the sessionid, or false
-                        io.emit('login response', sessionId);  // User passed login, so tell him the sessionId
+                        io.to(socket.id).emit('login response', sessionId);  // User passed login, so tell him the sessionId
                     });
+                    */
+                    // NEW WAY:  The socket.id is the sessionId
+                    // Insert sessionId into db
+                    exports.generateSession(socket.id, userId, function (sessionId) { // the response is the sessionid, or false
+                        io.to(socket.id).emit('login response', sessionId);  // User passed login, so tell him the sessionId
+                    });
+
                 } else {
                     // if not, send them a failed message.
                     response = "fail";
                     console.log(getFail() + 'user failed login with email ' + parsed.email + ' and password ' + parsed.password);
-                    io.emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
+                    io.to(socket.id).emit('login response', response);  // EMITS RESPONSE OF pass OR fail UPON LOGIN
                 }
             });
         });
@@ -1089,7 +1096,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
                         // Apply damage - for each monster id, send the damage (return 1 if dead), and see if i killed it (ie. loot bag drops)
                         exports.setMonsterPlantsDamage(results[row].id, newHp, damage, function (result) {
-                            io.emit('monsterDamageNumber', damage);
+                            io.to(socket.id).emit('monsterDamageNumber', damage);
                             // simply just updates the hp (even if negative)
                             // Since I don't care about the result callback, I should probably not use a callback here
                             //console.log(getPass() + sessionId + ' setMonsterPlantsDamage result=' + result);
@@ -1101,8 +1108,8 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
                             exports.insertLootIntoGatherPlants(sessionId, zoneId, x, y, z, itemId);  // Insert Loot into the gatherPlants table
 
-                            io.emit('monsterWipe');
-                            io.emit('show interactive', '(F) Get Loot'); // Shows the interactive window
+                            io.to(socket.id).emit('monsterWipe');
+                            io.to(socket.id).emit('show interactive', '(F) Get Loot'); // Shows the interactive window
                             //console.log(getPass() + sessionId + ' monster is dead');
                         } else {
                             //console.log(getPass() + sessionId + ' monster is still alive');
@@ -1134,7 +1141,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     //       from which the user can choose upon to create a new character.  Basically,
                     //       we're adding onto this html some more options for the user.
                 }
-                io.emit('resCharacterList', html);
+                io.to(socket.id).emit('resCharacterList', html);
             });
         });
 
@@ -1156,7 +1163,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 exports.speak(firstName, lastName, filename, prefix, function (filename) {
                     //console.log(getPass() + sessionId + ' exports.speak:::' + prefix + firstName + lastName + '. filename=' + filename);
                 });
-                io.emit('audioPlay', filename);
+                io.to(socket.id).emit('audioPlay', filename);
             });
         });
 
@@ -1183,7 +1190,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         if (itemId !== 0) {
                             exports.insertLootIntoBackpack(sessionId, zoneId, x, y, z, c, itemId, userId, charId, quantity, function (result) {  // The callback is sending us result
                                 console.log(getPass() + sessionId + ' insertLootIntoBackpack ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c + ' result=' + result);
-                                io.emit('heyAskForInventory', msg);
+                                io.to(socket.id).emit('heyAskForInventory', msg);
                             });
                         }
                     });
@@ -1204,14 +1211,14 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         var JSONobj = JSON.stringify({
                             resBankMyBackpack: results
                         });
-                        io.emit('resBankMyBackpack', JSONobj);
+                        io.to(socket.id).emit('resBankMyBackpack', JSONobj);
 
                         exports.getBank(sessionId, userId, charId, function (results) {  // The callback is sending us results
                             console.log('results=' + util.inspect(results));
                             var JSONobj = JSON.stringify({
                                 resBankMyBank: results
                             });
-                            io.emit('resBankMyBank', JSONobj);
+                            io.to(socket.id).emit('resBankMyBank', JSONobj);
                         });
 
                     });
@@ -1241,7 +1248,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     + '"quantity" : ' + '1'
                     + '}'
                     + ']';
-            io.emit('resInventory', JSONobj);
+            io.to(socket.id).emit('resInventory', JSONobj);
 */
             exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
                 exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId, charId
@@ -1250,7 +1257,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         var JSONobj = JSON.stringify({
                             resInventory: results
                         });
-                        io.emit('resInventory', JSONobj);
+                        io.to(socket.id).emit('resInventory', JSONobj);
                     });
                 });
             });
@@ -1283,7 +1290,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         + '"z" : ' + z + ','
                         + '"c" : ' + c
                         + '}';
-                io.emit('resTurnRight', JSONobj);
+                io.to(socket.id).emit('resTurnRight', JSONobj);
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
                 // isGatherable(sessionId,zoneId,x,y,z);
             });
@@ -1312,7 +1319,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     + '"z" : ' + z + ','
                     + '"c" : ' + c
                     + '}';
-                io.emit('resTurnLeft', JSONobj);
+                io.to(socket.id).emit('resTurnLeft', JSONobj);
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
                 // isGatherable(sessionId,zoneId,x,y,z);
             });
@@ -1349,7 +1356,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         + '"z" : ' + z + ','
                         + '"c" : ' + c
                         + '}';
-                io.emit('resWalkForward', JSONobj);
+                io.to(socket.id).emit('resWalkForward', JSONobj);
 
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
                 exports.isGatherable(sessionId, zoneId, x, y, z, function (results) {
@@ -1357,10 +1364,10 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     if (results.length !== 0) {
                         var row;
                         for (row = 0; row < results.length; row = row + 1) {
-                            io.emit('show interactive', '(F) Get Loot'); // Shows the interactive window
+                            io.to(socket.id).emit('show interactive', '(F) Get Loot'); // Shows the interactive window
                         }
                     } else {
-                      io.emit('hide interactive', msg);
+                      io.to(socket.id).emit('hide interactive', msg);
                     }
                 });
 
@@ -1375,7 +1382,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             + '"z" : ' + z + ','
                             + '"c" : ' + c
                             + '}';
-                    io.emit('monsterDraw', JSONobj);
+                    io.to(socket.id).emit('monsterDraw', JSONobj);
                     var filename = "monster_sfx/chicken-1.wav",
                         mimetype = "audio/wav",
                         JSONobj = '{'
@@ -1385,7 +1392,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             + '"z" : ' + z + ','
                             + '"mimetype" : "' + mimetype + '"'
                             + '}';
-                    io.emit('audioMonsterSFX', JSONobj);
+                    io.to(socket.id).emit('audioMonsterSFX', JSONobj);
                 }
             });
         });
@@ -1421,7 +1428,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     + '"z" : ' + z + ','
                     + '"c" : ' + c
                     + '}';
-                io.emit('resWalkBackward', JSONobj);
+                io.to(socket.id).emit('resWalkBackward', JSONobj);
                 // @TODO: See if there's something to gather and have it show/hide the gathering window
                 // isGatherable(sessionId,zoneId,x,y,z);
             });
@@ -1495,7 +1502,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                                         + '"x" : ' + x + ','
                                         + '"y" : ' + mapY
                                         + '}';
-                                    io.emit('resDrawMap', JSONobj);
+                                    io.to(socket.id).emit('resDrawMap', JSONobj);
 //                                        }
                                 });
                         }
@@ -1542,7 +1549,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                                 + '"x" : ' + x + ','
                                 + '"y" : ' + mapY
                                 + '}';
-                        io.emit('resDrawMap', JSONobj);
+                        io.to(socket.id).emit('resDrawMap', JSONobj);
                     }
                 }
                 );
@@ -1588,7 +1595,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             + '"x" : ' + x + ','
                             + '"y" : ' + mapY
                             + '}';
-                    io.emit('resDrawMap', JSONobj);
+                    io.to(socket.id).emit('resDrawMap', JSONobj);
             };
         });
 */
@@ -1667,7 +1674,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             + '"x" : ' + x + ','
                             + '"y" : ' + mapY
                             + '}';
-                    io.emit('resDrawMap', JSONobj);
+                    io.to(socket.id).emit('resDrawMap', JSONobj);
                 });
             });
         });
@@ -1794,7 +1801,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         + '"x" : ' + x + ','
                         + '"y" : ' + mapY
                         + '}';
-                io.emit('resDrawMap', JSONobj);
+                io.to(socket.id).emit('resDrawMap', JSONobj);
             }
         });
 */
@@ -1850,7 +1857,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         + '"x" : ' + x + ','
                         + '"y" : ' + y
                         + '}';
-                io.emit('resDrawMap', JSONobj);
+                io.to(socket.id).emit('resDrawMap', JSONobj);
             });
         });
 */
