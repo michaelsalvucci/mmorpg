@@ -420,12 +420,27 @@
             //console.log('sql=' + sql);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
-                if (err || sessionId === null) { // NOTE: Testing for sessionId===null might give unintended consequences
-                    console.log(getFail() + sessionId + ' exports.getUserCoordinates:::err=' + err);
+                if (err || sessionId === null || results.length === 0) { // NOTE: Testing for sessionId===null might give unintended consequences.  results.length may be the better test.
+                    console.log(getFail() + sessionId + ' exports.getUserCoordinates:::err=' + err + ' results=' + results);
+
+                    /*
+                    // Here I'm testing the Test Case of server started, user logs in, walks forward one step, server is stopped/started, and user continues to walk forward, now with a different session id
+                    // 20160504: temporary thingy here...
+                    io.emit('resDebug', 'exports.getUserCoordinates:::error found because client old sessionId does not match new server sessionId.  did server restart since client tried to do something? ' + sessionId);
+                    // at this point, it's showing the new sessionId, but it needs to logout all the sessions tied to the userId
+                    // that are NOT this one... unfortunately... the userId is not passed in this function,
+                    // so.... i may or may not be screwed here....
+                    // right now, i'm thinking i'm not screwed here... 
+                    // @TODO:  MAJOR PROBLEM THAT NEEDS TO BE FIXED NOW - this function needs to be rewritten to always send the sessionId, userId, and charId
+                    // so i need to see if all calls to this function can provide that much data
+                    // If it can, then I need to logout all sessions NOT tied to the userId with the current sessionId
+                    //io.to(sessionId).emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the possible bad sessionId to the client to check and see if the client's browser is current
+                    */
+
                     // @TODO: Log the character out, and add a console abort message
                     return callback(true); // this should probably be set to false
                 }
-                //console.log(getPass() + sessionId + ' exports.getUserCoordinates=' + util.inspect(results)); // useful for debugging
+                console.log(getPass() + sessionId + ' exports.getUserCoordinates:::results=' + util.inspect(results)); // useful for debugging
                 //console.log('hahahazoneId=' + results[0].zoneId + ' x=' + results[0].x + ' y=' + results[0].y + ' z=' + results[0].z + ' c=' + results[0].c);
                 return callback(results[0].zoneId, results[0].x, results[0].y, results[0].z, results[0].c);
             });
@@ -446,16 +461,48 @@
                 console.log(getFail() + ' exports.insertLootIntoBackpack:::err=' + err);
                 return callback(false);
             }
-            var sql = "INSERT INTO backpacks (charId, itemId, quantity) VALUES (?, ?, ?)";
+            /* First, check to see if I can add onto the item in the backpack */
+            var sql = "SELECT id, charId, itemId, quantity FROM backpacks WHERE charId = ? AND itemId = ? AND quantity < (250 - ? + 1) LIMIT 1";
             connection.query(sql, [charId, itemId, quantity], function (err, results) {
-                connection.release(); // always put connection back in pool right after the query
+                //connection.release(); // always put connection back in pool right after all the queries are finished.  This one is commented out since i'm running more queries downstream.
                 //console.log(getPass() + ' exports.insertLootIntoBackpack:::sql=' + sql);
                 if (err) {
                     console.log(getFail() + ' exports.insertLootIntoBackpack:::err=' + err);
                     return callback(false);
                 } else {
-                    //console.log(getPass() + ' exports.insertLootIntoBackpack:::results=' + util.inspect(results));
-                    return callback(true);
+                    // If I did not have results, I should INSERT a record.
+                    if (results.length === 0) {
+                        console.log(getPass() + ' ggg1exports.insertLootIntoBackpack:::results=' + util.inspect(results));
+                        var sql2 = "INSERT INTO backpacks (charId, itemId, quantity) VALUES (?, ?, ?)";
+                        connection.query(sql2, [charId, itemId, quantity], function (err, results) {
+                            connection.release(); // always put connection back in pool right after the query
+                            //console.log(getPass() + ' exports.insertLootIntoBackpack:::sql=' + sql);
+                            if (err) {
+                                console.log(getFail() + ' exports.insertLootIntoBackpack:::err=' + err);
+                                return callback(false);
+                            } else {
+                                //console.log(getPass() + ' exports.insertLootIntoBackpack:::results=' + util.inspect(results));
+                                return callback(true);
+                            }
+                        });
+                        return callback(true);
+                    } else {
+                        // else I had results, so I should UPDATE the existing record
+                        console.log(getPass() + ' ggg2exports.insertLootIntoBackpack:::results=' + util.inspect(results));
+                        var newQuantity = quantity + results[0].quantity,
+                            sql3 = "UPDATE backpacks SET quantity = ? WHERE id = ? AND charId = ? AND itemId = ? LIMIT 1";
+                        connection.query(sql3, [newQuantity, results[0].id, charId, itemId], function (err, results) {
+                            connection.release(); // always put connection back in pool right after the query
+                            //console.log(getPass() + ' exports.insertLootIntoBackpack:::sql=' + sql);
+                            if (err) {
+                                console.log(getFail() + ' exports.insertLootIntoBackpack:::err=' + err);
+                                return callback(false);
+                            } else {
+                                //console.log(getPass() + ' exports.insertLootIntoBackpack:::results=' + util.inspect(results));
+                                return callback(true);
+                            }
+                        });
+                    }
                 }
             });
         });
@@ -951,7 +998,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             filename = ""; // quietness
             break;
         }
-        io.to(socket.id).emit('audioSoundtrack', filename);
+        io.emit('audioSoundtrack', filename);  // NOTE:  This is a special implementation of io.emit because it sends the message to global chat instead of to an individual
     }, 90000);
 
 
@@ -962,7 +1009,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         var string = "System\\ Respawning",
             filename = "systemrespawning.wav";
         execSync("/usr/bin/flite -t " + string + " -o /var/www/mmorpg/audio/" + filename);  // Synchronous Exec in Node.js
-        io.to(socket.id).emit('audioSystemMessage', filename);
+        io.emit('audioSystemMessage', filename);// NOTE:  This is a special implementation of io.emit because it sends the message to global chat instead of to an individual
 
         spawnWipeGathers();
         spawnWipeMonsters();
@@ -996,7 +1043,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         /////////////////////////////////////////////////////////////////////////////
         socket.on('chat message', function (msg) {
             //console.log(getPass() + 'message: ' + msg);
-            io.emit('chat message', msg);  // This sends the message to global chat
+            io.emit('chat message', msg);  // NOTE:  This is a special implementation of io.emit because it sends the message to global chat instead of to an individual
         });
 
         /////////////////////////////////////////////////////////////////////////////
@@ -1186,8 +1233,9 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                     exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) {  // The callback is sending us userId, charId
                         console.log(getPass() + sessionId + ' getUserIdAndCharId:::sessionId=' + sessionId + ' userId=' + userId + ' charId=' + charId);
 
-                        var quantity = 1;
-                        if (itemId !== 0) {
+                        var quantity = 1;  // @TODO: Phase 2 quantity should be based on something other than a fixed amount of 1
+
+                        if (itemId !== 0 && itemId !== false) { // fixed bug because false was appearing instead of 0
                             exports.insertLootIntoBackpack(sessionId, zoneId, x, y, z, c, itemId, userId, charId, quantity, function (result) {  // The callback is sending us result
                                 console.log(getPass() + sessionId + ' insertLootIntoBackpack ' + sessionId + ' ' + zoneId + ' ' + x + ' ' + y + ' ' + z + ' ' + c + ' result=' + result);
                                 io.to(socket.id).emit('heyAskForInventory', msg);

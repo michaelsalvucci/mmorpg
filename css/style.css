@@ -145,11 +145,11 @@ root {
 }
 #messages {
     background-color: lemonchiffon; /* remove later */
-    height:90%;
-    max-height:90%;
-    overflow-y:auto;
-    padding:0 0 4% 0;
-    width:100%;
+    height: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    padding: 0 0 4% 0;
+    width: 100%;
 }
 #contents_message {
     background-color: lemonchiffon; /* remove later */
@@ -159,8 +159,12 @@ root {
 }
 #message { /* this is the textarea input bar within the chat window */
     background-color: lightyellow; /* remove later */
+    font-family: IM Fell English,serif;
     height: 100%;
-    width:90%;
+    width: 90%;
+}
+input#message {
+  border: none;  /* hides the black border around the chat input box */
 }
 /*#chat .ui-resizable { position: relative;}
 #chat .ui-resizable-handle { position: absolute;font-size: 0.1px; display: block; }

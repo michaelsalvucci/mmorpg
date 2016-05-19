@@ -53,7 +53,10 @@ socket.on('resSessionId', function(msg) {
     window.sessionId = msg;
     console.log('sessionId = ' + window.sessionId);
 });
-
+// This does special debugging from the server
+socket.on('resDebug', function(msg) {
+    console.log('resDebug= ' + msg);
+});
 
 
   // These two lines disable the browser's scrollbars
@@ -418,7 +421,7 @@ socket.on('resSessionId', function(msg) {
     }
 
     if(code == 70 || code == 102) {  // f or F key pressed
-      $("#interactive").toggle();
+      $("#interactive").hide();
       $('#monsterDamageNumber').hide();
       socket.emit('reqInteractive', window.sessionId );
     }
@@ -456,6 +459,10 @@ socket.on('resSessionId', function(msg) {
 
     if(code == 87 || code == 119) {  // w or W key pressed
       // walk forward
+if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
+    alert('session has changed.  You need to reload your browser because the server restarted or you lost connection to your socket.');
+}
+
       socket.emit('reqDrawMap', window.sessionId );
       //map.draggable();// have to do this again, because the class got wiped during the rewrite
     }
