@@ -703,6 +703,36 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
     };
 
 
+
+
+
+    exports.getMonster = function (sessionId, monsterId, callback) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(getFail() + ' exports.getMonster:::err=' + err);
+                return callback(false);
+            }
+            var sql = "SELECT name, image, audioFilename, audioMimeType FROM monsters WHERE id = ?";
+            connection.query(sql, [monsterId], function (err, results) {
+                connection.release(); // always put connection back in pool right after the query
+                //console.log(getPass() + ' exports.getMonster:::sql=' + sql);
+                if (err) {
+                    console.log(getFail() + ' exports.getMonster:::err=' + err);
+                    return callback(false);
+                } else {
+                    console.log(getPass() + ' exports.getMonster:::results=' + util.inspect(results));
+                    return callback(results);
+                }
+            });
+        });
+    };
+
+
+
+
+
+
+
     exports.getMonstersNearMe = function (sessionId, zoneId, x, y, z, callback) {
         //console.log(getPass() + sessionId + ' exports.getMonstersNearMe:::sessionId:' + sessionId + 'zoneId=' + zoneId + 'x=' + x + 'y=' + y + 'z=' + z);
         pool.getConnection(function (err, connection) {
@@ -1420,6 +1450,8 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 });
 
 
+                // @TODO:  Rewrote this to pull monsters from database
+/* OLD WAY:
                 if (x === 5 && y === 5) {
                     var name = "Chicken",
                         filename = "/images/chicken.png",
@@ -1442,6 +1474,30 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             + '}';
                     io.to(socket.id).emit('audioMonsterSFX', JSONobj);
                 }
+NEW WAY:
+*/
+
+                exports.getMonstersNearMe(sessionId, zoneId, x, y, z, function (results) { // The callback is sending us results
+                    var row;
+                    for (row in results) {
+                        var monsterId = results[row].monsterId;
+                        exports.getMonster(sessionId, monsterId, function (results2) { // The callback is sending us results2
+                            console.log(getPass() + sessionId + ' foobar3323525 ' + util.inspect(results2));
+                            var JSONobj = JSON.stringify({
+                                monsterInfo: results2
+                            });
+                            io.to(socket.id).emit('monsterDraw', JSONobj);  // send the monster image
+                            io.to(socket.id).emit('audioMonsterSFX', JSONobj);  // send the monster audio track
+                        });
+                    }
+                });
+
+
+
+
+
+
+
             });
         });
 

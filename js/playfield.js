@@ -539,13 +539,24 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
 
     socket.on('audioMonsterSFX', function(msg) {
         //alert(msg);
-        var obj = $.parseJSON(msg);
-        $('#audioMonsterSFX').replaceWith("\
-          <div id=audioMonsterSFX>\
-            <audio autoplay=autoplay>\
-              <source src=/audio/"+obj.filename+" type="+obj.mimetype+">\
-            </audio>\
-        </div>");
+// OLD WAY:
+//        var obj = $.parseJSON(msg);
+//        $('#audioMonsterSFX').replaceWith("\
+//          <div id=audioMonsterSFX>\
+//            <audio autoplay=autoplay>\
+//              <source src=/audio/"+obj.filename+" type="+obj.mimetype+">\
+//            </audio>\
+//        </div>");
+// NEW WAY:
+        var obj = $.parseJSON(msg).monsterInfo;
+        for(var i=0; i<obj.length; i++) {
+            $('#audioMonsterSFX').replaceWith("\
+              <div id=audioMonsterSFX>\
+                <audio autoplay=autoplay>\
+                  <source src=/audio/"+obj[i].audioFilename+" type="+obj[i].audioMimeType+">\
+                </audio>\
+            </div>");
+        }
     });
 
   socket.on('audioSoundtrack', function(msg) {
@@ -581,8 +592,10 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
     
     socket.on('monsterDraw', function(msg) {
         //alert(msg);
-        var obj = $.parseJSON(msg);
-        $('#monsters').replaceWith("<div id=monsters style=\"background: url('"+obj.filename+"') no-repeat;background-color:transparent;height:200;width:200;margin: 650 0 0 650;opacity:0.9;position:absolute;z-index:10;\"></div>");
+        var obj = $.parseJSON(msg).monsterInfo;
+        for(var i=0; i<obj.length; i++) {
+            $('#monsters').replaceWith("<div id=monsters style=\"background: url('"+obj[i].image+"') no-repeat;background-color:transparent;height:200;width:200;margin: 650 0 0 650;opacity:0.9;position:absolute;z-index:10;\"></div>");
+        }
     });
     socket.on('monsterWipe', function(msg) {
         $('#monsters').replaceWith("<div id=\"monsters\"></div>");
