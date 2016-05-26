@@ -44,8 +44,24 @@ $(document).ready(function () {
         x = 0,  // @TODO:  Need to really download their current x coordinate upon login
         y = 0;  // @TODO:  Need to really download their current y coordinate upon login
 
-  var socket = io();  // used for chat, login, etc.
+    var socket = io();  // used for chat, login, etc.
 
+    // For Health Bars Only
+    var browserHeight = $(window).height(); // in pixels
+    $("#healthBarBody").css("margin", browserHeight - 20 + 9 + 'px 0 -9px -9px');  // 9px border in Google Chrome by default.  Bar is 20px high and at the bottom of the screen.
+
+    // Disable Scrollbars
+    $("body").css("overflow", "hidden"); // This disables the browser's scrollbars
+    //document.documentElement.style.overflow = 'hidden';  // These two lines also disable the browser's scrollbars
+    //document.body.scroll = "no";
+
+
+    socket.on('charHealthBarBody', function(msg) {
+      var obj = $.parseJSON(msg).resCharHealthBarBodyCurrent;
+      $("#healthBarBodyCurrent").css("width", obj[1] + '%'); // adjusts the green health bar
+      $("#healthBarBodyCurrentNumber").replaceWith('<div id="healthBarBodyCurrentNumber">' + obj[0] + '</div>');
+      console.log('message = ' + msg);
+    });
 
 
 // This sets the Session Id
@@ -59,9 +75,7 @@ socket.on('resDebug', function(msg) {
 });
 
 
-  // These two lines disable the browser's scrollbars
-  document.documentElement.style.overflow = 'hidden';
-  document.body.scroll = "no";
+
 
 
   $('#bank').hide();

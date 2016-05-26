@@ -386,6 +386,27 @@
         });
     };
 
+    exports.getCharacter = function (sessionId, charId, callback) {
+        console.log(getPass() + sessionId + ' exports.getCharacter:::sessionId=' + sessionId);
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(getFail() + sessionId + ' err=' + err);
+                return callback(false);
+            }
+            var sql = "SELECT firstName, lastName, inactive, hpMax, hpCurrent FROM characters WHERE id = ? LIMIT 1";
+            //console.log('sql=' + sql);
+            connection.query(sql, [charId], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                if (err || sessionId === null) { // NOTE: Testing for sessionId===null might give unintended consequences
+                    console.log(getFail() + 'sessionId=' + sessionId + ' exports.getCharacter:::err=' + err);
+                    return callback(false);
+                }
+                console.log(getPass() + sessionId + ' exports.getCharacter:::results=' + util.inspect(results)); // useful for debugging
+                return callback(results);
+            });
+        });
+    };
+
 
     exports.getUserIdAndCharId = function (sessionId, zoneId, x, y, z, c, callback) {
         console.log(getPass() + sessionId + ' exports.getUserIdAndCharId:::sessionId=' + sessionId);
@@ -861,6 +882,31 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             });
         });
     };
+
+
+    exports.setCharacterHpRevised = function (id, charHpRevised, callback) {
+        console.log(getPass() + 'exports.setCharacterHpRevised:::id:' + id + 'charHpRevised=' + charHpRevised);
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(err);
+                return callback(false);
+            }
+            var sql = "UPDATE characters SET hpCurrent = ? WHERE id = ? LIMIT 1";
+            connection.query(sql, [charHpRevised, id], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                if (err) {
+                    console.log(getFail() + ' exports.setCharacterHpRevised:::err=' + err);
+                    return callback(false);
+                } else {
+                    console.log(getPass() + 'exports.setCharacterHpRevised:::results=' + util.inspect(results)); // useful for debugging
+                    return;
+                }
+            });
+        });
+    };
+
+
+
     /** 
       * exports.setMonsterPlantsDamage
       *
@@ -1155,6 +1201,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 exports.getMonstersNearMe(sessionId, zoneId, x, y, z, function (results) { // The callback is sending us results
                     //console.log(getPass() + sessionId + 'reqAttack:::results=' + results);
                     var damage = getRandom3d6(),
+                        characterDamage = getRandom3d6(),
                         newHp = 0;
                     for (row in results) {
                         //console.log('row=' + row);
@@ -1164,9 +1211,6 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                         //console.log('monsterId=' + results[row].monsterId);
                         console.log('hp=' + results[row].hp);
                         // @TODO:  REDRAW MONSTER LAYER
-
-                        // Roll die
-                        //var damage = getRandomInt(0, 50); // 0,50 is min,max damage (a fixed number is used for now during testing)
 
                         //console.log('damage = ' + damage);
                         newHp = results[row].hp - damage;
@@ -1190,6 +1234,37 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             //console.log(getPass() + sessionId + ' monster is dead');
                         } else {
                             //console.log(getPass() + sessionId + ' monster is still alive');
+
+                            // Monster attacks character
+// @todo:  get the character id first, then apply damage
+                            exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId and charId
+console.log('userId=' + userId + ' charId=' + charId);
+                                exports.getCharacter(sessionId, charId, function (results2) {  // The callback is sending results2
+                                    console.log('results2=' + util.inspect(results2));
+// @todo:   get the character's hp, then subtract the damage, 
+                                    var charHpRevised = results2[0].hpCurrent - characterDamage;
+                                    var charHpMax = results2[0].hpMax;
+console.log('results2[0].hpCurrent = ' + results2[0].hpCurrent + ' characterDamage=' + characterDamage);
+console.log('charHpRevised=' + charHpRevised);
+                                    exports.setCharacterHpRevised(charId, charHpRevised, function(result3) {
+                                    });
+console.log('charHpRevised=' + charHpRevised);
+console.log('charHpMax=' + charHpMax);
+
+                                    var hpBarBodyCurrentPercentage = parseInt(charHpRevised / charHpMax * 1000) / 10; // show 1 decimal place as a percentage
+                                    var JSONobj = JSON.stringify({
+                                      resCharHealthBarBodyCurrent: [charHpRevised, hpBarBodyCurrentPercentage]
+                                    });
+
+                                    io.to(socket.id).emit('charHealthBarBody', JSONobj);  // @todo:  show the changing health bar on the screen
+
+                                    // Is the character dead?
+                                    if (characterDamage >= results2[0].hpCurrent) {
+console.log('character is dead');
+// @todo:  emit character dead (new thing to write)
+                                    }
+                                });
+                            });
                         }
                         // @TODO: Show damage numbers on screen
                     }
@@ -1445,7 +1520,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             io.to(socket.id).emit('show interactive', '(F) Get Loot'); // Shows the interactive window
                         }
                     } else {
-                      io.to(socket.id).emit('hide interactive', msg);
+                        io.to(socket.id).emit('hide interactive', msg);
                     }
                 });
 
@@ -1479,16 +1554,21 @@ NEW WAY:
 
                 exports.getMonstersNearMe(sessionId, zoneId, x, y, z, function (results) { // The callback is sending us results
                     var row;
-                    for (row in results) {
-                        var monsterId = results[row].monsterId;
-                        exports.getMonster(sessionId, monsterId, function (results2) { // The callback is sending us results2
-                            console.log(getPass() + sessionId + ' foobar3323525 ' + util.inspect(results2));
-                            var JSONobj = JSON.stringify({
-                                monsterInfo: results2
+                    if (results.length === 0) {
+                        io.to(socket.id).emit('monsterWipe', sessionId);  // If no monsters are around, wipe the monster image
+                    } else {
+                        // else, monsters are around me, so show image and audio
+                        for (row in results) {
+                            var monsterId = results[row].monsterId;
+                            exports.getMonster(sessionId, monsterId, function (results2) { // The callback is sending us results2
+                                console.log(getPass() + sessionId + ' foobar3323525 ' + util.inspect(results2));
+                                var JSONobj = JSON.stringify({
+                                    monsterInfo: results2
+                                });
+                                io.to(socket.id).emit('monsterDraw', JSONobj);  // send the monster image
+                                io.to(socket.id).emit('audioMonsterSFX', JSONobj);  // send the monster audio track
                             });
-                            io.to(socket.id).emit('monsterDraw', JSONobj);  // send the monster image
-                            io.to(socket.id).emit('audioMonsterSFX', JSONobj);  // send the monster audio track
-                        });
+                        }
                     }
                 });
 
