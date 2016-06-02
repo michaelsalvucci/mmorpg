@@ -76,7 +76,7 @@ socket.on('resDebug', function(msg) {
 
 
 
-
+  $('#alertFlash').hide();
 
   $('#bank').hide();
   $('#bank').resizable();
@@ -530,6 +530,20 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
   socket.on('show interactive', function(msg) {
     $('#interactive').replaceWith("<div id=interactive>" + msg + "</div>");
     $("#interactive").show();
+  });
+
+  socket.on('resAlertFlash', function(msg) {
+      $('#alertFlash').hide().css({display:'none'});
+      //$('#alertFlash').css({display:'none'});
+
+      // 20160601:  While .text() will give the original desired effect of fade in-and-out, .replaceWith() will allow for faster updates (eg. fast attacks)
+      // $('#alertFlash').text(msg);
+      //$('#alertFlash').replaceWith("<div id=alert>Lorem ipsum dolor sit amet, consectetur adipiscing elit. In risus quam, pharetra...</div>");  // This was added to show character length limits on this type of #alertFlash
+      $('#alertFlash').replaceWith("<div id=alertFlash>"+msg+"</div>");
+
+      $('#alertFlash').fadeIn(1);  // We don't want the original desired effect, hence 1 to show it has zero effect
+      $('#alertFlash').delay(1500);
+      $('#alertFlash').fadeOut(1000);
   });
 
   socket.on('resDrawMap', function(msg) {

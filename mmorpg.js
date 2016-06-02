@@ -1236,32 +1236,34 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                             //console.log(getPass() + sessionId + ' monster is still alive');
 
                             // Monster attacks character
-// @todo:  get the character id first, then apply damage
+                            // Get the character id first, then apply damage
                             exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId and charId
-console.log('userId=' + userId + ' charId=' + charId);
+                                console.log('userId=' + userId + ' charId=' + charId);
                                 exports.getCharacter(sessionId, charId, function (results2) {  // The callback is sending results2
                                     console.log('results2=' + util.inspect(results2));
-// @todo:   get the character's hp, then subtract the damage, 
-                                    var charHpRevised = results2[0].hpCurrent - characterDamage;
-                                    var charHpMax = results2[0].hpMax;
-console.log('results2[0].hpCurrent = ' + results2[0].hpCurrent + ' characterDamage=' + characterDamage);
-console.log('charHpRevised=' + charHpRevised);
-                                    exports.setCharacterHpRevised(charId, charHpRevised, function(result3) {
+                                    // Get the character's hp, then subtract the damage, 
+                                    var charHpRevised = results2[0].hpCurrent - characterDamage,
+                                        charHpMax = results2[0].hpMax;
+                                    // USED AS AN EXAMPLE ONLY.... I WOULD NOT PREFER TO SHOW THIS METHOD DURING A FIGHT AS THERE IS A HEALTH BAR WITH THE SAME INFO:// io.to(socket.id).emit('resAlertFlash', 'characterDamage=' + characterDamage);
+                                    console.log('results2[0].hpCurrent = ' + results2[0].hpCurrent + ' characterDamage=' + characterDamage);
+                                    console.log('charHpRevised=' + charHpRevised);
+                                    exports.setCharacterHpRevised(charId, charHpRevised, function (result3) {
                                     });
-console.log('charHpRevised=' + charHpRevised);
-console.log('charHpMax=' + charHpMax);
+                                    console.log('charHpRevised=' + charHpRevised);
+                                    console.log('charHpMax=' + charHpMax);
 
-                                    var hpBarBodyCurrentPercentage = parseInt(charHpRevised / charHpMax * 1000) / 10; // show 1 decimal place as a percentage
+                                    var hpBarBodyCurrentPercentage = parseInt(charHpRevised / charHpMax * 1000) / 10;  // show 1 decimal place as a percentage
                                     var JSONobj = JSON.stringify({
-                                      resCharHealthBarBodyCurrent: [charHpRevised, hpBarBodyCurrentPercentage]
+                                        resCharHealthBarBodyCurrent: [charHpRevised, hpBarBodyCurrentPercentage]
                                     });
 
-                                    io.to(socket.id).emit('charHealthBarBody', JSONobj);  // @todo:  show the changing health bar on the screen
+                                    io.to(socket.id).emit('charHealthBarBody', JSONobj);  // Show the changing health bar on the screen
 
                                     // Is the character dead?
                                     if (characterDamage >= results2[0].hpCurrent) {
-console.log('character is dead');
+                                        console.log('character is dead');
 // @todo:  emit character dead (new thing to write)
+// UNTESTED YET:  io.to(socket.id).emit('resAlertFlash', 'YOU ARE DEAD!');
                                     }
                                 });
                             });
@@ -1316,6 +1318,8 @@ console.log('character is dead');
                     //console.log(getPass() + sessionId + ' exports.speak:::' + prefix + firstName + lastName + '. filename=' + filename);
                 });
                 io.to(socket.id).emit('audioPlay', filename);
+
+                io.to(socket.id).emit('resAlertFlash', 'Welcome ' + firstName + " " + lastName);
             });
         });
 
