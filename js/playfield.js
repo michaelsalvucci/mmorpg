@@ -46,9 +46,14 @@ $(document).ready(function () {
 
     var socket = io();  // used for chat, login, etc.
 
-    // For Health Bars Only
+    // For Health Bars Only - This positions them on the screen
     var browserHeight = $(window).height(); // in pixels
-    $("#healthBarBody").css("margin", browserHeight - 20 + 9 + 'px 0 -9px -9px');  // 9px border in Google Chrome by default.  Bar is 20px high and at the bottom of the screen.
+    $("#healthBarBody").css("margin", browserHeight - 20 + 9 + 'px 0px 0px -9px');  // 9px border in Google Chrome by default.  Bar is 20px high and at the bottom of the screen.
+
+    // Set Audio Volumes
+    //var aud = document.getElementById("audioSoundtrack");
+    //aud.volume = 0.2;
+
 
     // Disable Scrollbars
     $("body").css("overflow", "hidden"); // This disables the browser's scrollbars
@@ -88,6 +93,8 @@ socket.on('resDebug', function(msg) {
   $('#chat').hide();
   $('#chat').resizable();
   $('#chat').draggable();
+
+  $('#deathmask').hide();
 
   $('#characterSelect').hide();
   $('#characterSelect').draggable();
@@ -348,7 +355,7 @@ socket.on('resDebug', function(msg) {
         var obj = $.parseJSON(msg).resInventory;
         var contents = "";
         for(var i=0; i<obj.length; i++) {
-            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-id="+i+" data-itemId="+obj[i].itemId +" data-itemTypeName="+obj[i].itemTypeName +" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
         }
         $('#contents_inventory').replaceWith("\
             <div id=contents_inventory>\
@@ -356,8 +363,26 @@ socket.on('resDebug', function(msg) {
             </div>\
         ");
     };
-   // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
-   $('.each_inventory').draggable({containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+    // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
+    $('.each_inventory').draggable({
+        containment: "#inventory", snap:".contents_inventory", snapMode:"inner", snapTolerance:[36], grid:[36,36]  
+        // turned this off (note: the comments are legit)...
+        //    });  // 36 = 32 + 2px margins
+        // ... so i can I add doubleclick functionality by adding this...
+    }).dblclick(function(){
+      console.log(this);
+      alert($(this).data("itemid"));
+      if( $(this).data("itemtypename") === "eat") {
+          // this is something to eat
+          alert("this is something to eat");
+          // @TODO:  socket.emit('reqInventoryConsume', window.sessionId, $(this).data("itemid"));  // only eat 1
+      } else {
+          alert("this is not something to eat");
+      }
+    });
+
+
+
   });
 
 
@@ -512,11 +537,14 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
 
   /////////////////////////////////////////////////////////////////////////////
   // MOUSE EVENTS
-  $('.each_inventory').dblclick(function(event) {
+
+  // This particular one was moved up higher, so search for .each_inventory
+  //$(".each_inventory").mousedown(function() {
     //console.log(this);
-    alert($(this).data("itemid"));
+    //alert($(this).data("itemid"));
+    //alert("hi");
     //@todo socket.emit('consume', window.sessionId, $(this).data("itemid"));
-  });
+  //});
 
 
   /////////////////////////////////////////////////////////////////////////////
@@ -532,6 +560,18 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
     $("#interactive").show();
   });
 
+  socket.on('deathmaskHide', function(msg) {
+      $('#deathmask').hide();
+  });
+
+  socket.on('deathmaskShow', function(msg) {
+      $('#deathmask').show();
+  });
+
+  socket.on('avatarFlipDead', function(msg) {
+      $('#avatar').css({transform:'rotate(270deg)'});
+  });
+
   socket.on('resAlertFlash', function(msg) {
       $('#alertFlash').hide().css({display:'none'});
       //$('#alertFlash').css({display:'none'});
@@ -543,7 +583,7 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
 
       $('#alertFlash').fadeIn(1);  // We don't want the original desired effect, hence 1 to show it has zero effect
       $('#alertFlash').delay(1500);
-      $('#alertFlash').fadeOut(1000);
+      $('#alertFlash').fadeOut(1500);
   });
 
   socket.on('resDrawMap', function(msg) {
@@ -591,11 +631,12 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
     console.log('audioSoundtrack=' + msg);
 //    alert(msg);
     $('#audioSoundtrack').replaceWith("\
-      <div id=audioSoundtrack>\
-        <audio autoplay=autoplay>\
+      <div id=audioSoundtrack volume=0.2>\
+        <audio autoplay=autoplay volume=0.2>\
           <source src=/audio/"+msg+" type=audio/mp3>\
         </audio>\
       </div>");
+    $('#audioSoundtrack').volume = 0.2;
   });
 
   socket.on('audioSystemMessage', function(msg) {

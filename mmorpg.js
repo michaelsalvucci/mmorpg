@@ -660,7 +660,7 @@
 
 //io.to(socket.id).emit('resLogMeOut', sessionId); // 20160330 MS: Sends back the bad sessionId to the client to check and see if the client's browser is current
 
-var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName FROM characters c RIGHT JOIN sessions s ON s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId);
+var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName AS lastName FROM characters c RIGHT JOIN sessions s ON s.userId = c.userId WHERE s.id = " + mysql.escape(sessionId) + " AND c.inactive <> 1";
 
 
             connection.query(sql, [], function (err, results) {
@@ -708,9 +708,9 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 console.log(getFail() + sessionId + ' err=' + err);
                 return callback(false);
             }
-            var sql = "SELECT b.itemId, i.name, i.image, b.quantity FROM backpacks b LEFT JOIN items i ON b.itemId = i.id WHERE b.charId = " + mysql.escape(charId);
+            var sql = "SELECT b.itemId, i.name, i.image, b.quantity, t.name AS itemTypeName FROM backpacks b LEFT JOIN items i ON b.itemId = i.id LEFT JOIN itemType t ON i.itemType = t.id WHERE b.charId = ?";
             console.log(getPass() + sessionId + ' exports.getInventory:::sql=' + sql);
-            connection.query(sql, [], function (err, results) {
+            connection.query(sql, [charId], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
                 if (err) {
                     console.log(getFail() + sessionId + ' exports.getInventory:::err=' + err);
@@ -1033,7 +1033,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
     setInterval(function () {
 
         var min = 1,
-            max = 12, // If this is 696969, set it to the correct number.  If it's set to 696969, it's to disable the music during programming.
+            max = 9, // If this is 696969, set it to the correct number.  If it's set to 696969, it's to disable the music during programming.
             random_number = Math.floor(Math.random() * (max - min + 1)) + min,
             filename = "";
         switch (random_number) {
@@ -1041,13 +1041,13 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             filename = "music/Ai+Vis+Lo+Lop.mp3"; // irish blabber
             break;
         case 2:
-            filename = "music/D.mp3"; // latino music
+            filename = "music/What+shell+we+do+with+the+drunken+sailor.mp3";
             break;
         case 3:
             filename = "music/Embraced+By+The+Shadows.mp3"; // siren repeated ad nauseum
             break;
         case 4:
-            filename = "music/Frei.mp3"; // foreign schlep
+            filename = "music/TheDrunkenSailor.mp3";
             break;
         case 5:
             filename = "music/Peasants+promise.mp3"; // 90000 sounds great on this one
@@ -1065,10 +1065,10 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             filename = "music/Tarantarmoricana.mp3";
             break;
         case 10:
-            filename = "music/TheDrunkenSailor.mp3";
+            filename = "music/Frei.mp3"; // foreign schlep - CURRENTLY DISABLED
             break;
         case 11:
-            filename = "music/What+shell+we+do+with+the+drunken+sailor.mp3";
+            filename = "music/D.mp3";  // foreign language - CURRENTLY DISABLED
             break;
         default:
             filename = ""; // quietness
@@ -1261,9 +1261,13 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
                                     // Is the character dead?
                                     if (characterDamage >= results2[0].hpCurrent) {
+                                        // Yes, the character is dead
                                         console.log('character is dead');
-// @todo:  emit character dead (new thing to write)
-// UNTESTED YET:  io.to(socket.id).emit('resAlertFlash', 'YOU ARE DEAD!');
+                                        // @todo:  emit character dead (new thing to write)
+                                        io.to(socket.id).emit('resAlertFlash', 'YOU ARE DEAD!');
+                                        io.to(socket.id).emit('audioPlay', "sad_trombone.wav");
+                                        io.to(socket.id).emit('deathmaskShow', "");
+                                        io.to(socket.id).emit('avatarFlipDead', "");
                                     }
                                 });
                             });
@@ -1390,7 +1394,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         /////////////////////////////////////////////////////////////////////////////
         socket.on('reqInventory', function (msg) {   // I or i key pressed
             var sessionId = msg;
-/*
+/* This is how I hard-coded it to get it going the first time...
             var JSONobj = '['
                     + '{'
                     + '"itemId" : ' + '1' + ','

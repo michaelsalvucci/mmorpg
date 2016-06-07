@@ -201,12 +201,21 @@ input#message {
     z-index: 100;
 }
 
+#deathmask {
+  background-color: black;
+  height: 100%;
+  opacity: 0.50;
+  position: absolute;
+  width: 100%;
+  z-index: 1000;
+}
+
 #debug {
     background-color: orange;
     font-size: 1.125em;
     margin: 50px 0 0 50px;
     position: absolute;
-    height: 550px;
+    height: 600px;
     opacity: 0.90;
     width: 290px;
     z-index: 70;
@@ -228,7 +237,7 @@ input#message {
     font-family: arial, helvetica, serif;
     text-shadow: 4px 4px #000000;
     font-weight: bold;
-    margin: 50% 0% 0% 10%; /*700 0 0 700;*/
+    margin: 45% 0% 0% 15%; /*700 0 0 700;*/
     position: absolute;
     height: 10%;
     text-align: center;

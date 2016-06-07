@@ -5,6 +5,15 @@
   <meta name="author" content="Michael Salvucci - 931-242-4226">
   <meta name="description" content="mmorpg">
   
+  
+  <!-- added 20160601: pragma meta tag
+  <!-- WARNING #1:  COULD PRESENT PROBLEMS IF WE WANT TO MAINTAIN SESSION -->
+  <!-- WARNING #2:  This solves having to force page refreshes all the time during development, but it could also present other problems down the road (eg. remembering sessions upon a lost connection) -->
+  <meta name="pragma" content="no-cache"> <!-- Ref. http://www.metatags.org/meta_http_equiv - This tag makes sure your page will not remain
+                                          in the cache of the computer of your visitor.  It is useful if the content of the page regularly
+                                          changes, (eg. if you have a news page).  -->
+  
+  
   <script src="vendor/jquery/dist/jquery.min.js"></script>
   
   <script src="/node_modules/socket.io-client/socket.io.js"></script>
@@ -78,17 +87,17 @@
     June 2016 Alpha Build<br>
     Requires:  Google Chrome Web Browser<br>
     -Press [CTRL-F5] or [Command-r] to Refresh your browser with the newest version<br>
-    -MENU Commands: b,c,e,f,i,k,m,p,t,u<br>
+    -MENU Commands: b,c,e,f(picks up stuff),i,k,m,p,t,u<br>
     -NAVIGATION Commands: w,a,d,x<br>
     -LOVE/HATE IT? Email iovooch@gmail.com<br>
-    -The gold number below is frames/second meter<br>
-    -Approximately 35 years ago, we were all told 30 frames per second was the most a human can see.  Although the human eye and brain can interpret up to 1000 frames per second, someone sitting in a chair and actively guessing at how high a framerate is can, on average, interpet up to about 150 frames per second.  The point: 60 fps is not a 'waste'.Nov 22, 2012<br>
-    -Click on a white area of the screen and press 'u' to toggle this message<br>
+    -The golden number below is frames/second meter<br>
+    -Click on the background picture and press 'u' to toggle this message<br>
     =-=-=-=-=-=-=-=-=-=-=-=<br>
   </div>
   
   <div id="email">email window</div>
 
+  
     <div id="fps"></div>  
   
   <div id="interactive">interactive window</div>
@@ -202,6 +211,10 @@
           Baronet<br>
           Foot Soldier<br>
           Peasant/Serf<br>
+          CRAFTING<br>
+          Observation<br>
+          Tinkering<br>
+          Reverse Engineering<br>
           TECHNOLOGY<br>
           Religion<br>
           Lorem<br>
@@ -293,10 +306,11 @@
   <div id="monsters"></div>
   <div id="monsterDamageNumber"></div>
 
+  <div id="deathmask"></div>
 
   <div id="healthBarAura"><div id="healthBarAuraMax"><div id="healthBarAuraCurrent"></div></div><div id="healthBarAuraCurrentNumber"></div></div> <!-- a subtly, pervasive quality or atmospher seen as emanating from a person, place, or thing -->
   <div id="healthBarArmor"><div id="healthBarArmorMax"><div id="healthBarArmorCurrent"></div></div><div id="healthBarArmorCurrentNumber"></div></div>
-  <div id="healthBarBody"><div id="healthBarBodyMax"><div id="healthBarBodyCurrent"></div></div><div id="healthBarBodyCurrentNumber">100</div></div>
+  <div id="healthBarBody"><div id="healthBarBodyMax"><div id="healthBarBodyCurrent"></div></div><div id="healthBarBodyCurrentNumber"></div></div>
   
 <!-- FOR THE MUSIC LOVERS OUT THERE -->
 <!-- <div style="position:relative;width:267px;height:25px;overflow:hidden;"> -->
