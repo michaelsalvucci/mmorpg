@@ -46,6 +46,14 @@
 <body>
 <div id="playfield">
 
+  
+  
+  
+  <!-- START OF: CSS3 RAIN EFFECT ( Ref. https://codepen.io/alemesre/pen/hAxGg ) -->
+  <section class="rain"></section>
+  <!-- END OF: CSS3 RAIN EFFECT -->
+
+
   <form>
     <textarea id="menu"></textarea>
   </form>
@@ -54,6 +62,7 @@
   <div id="audioMonsterSFX" style="display:none"></div>
   <div id="audioSoundtrack" style="display:none"></div>
   <div id="audioSystemMessage" style="display:none"></div>
+  <div id="audioWeather" style="display:none"></div>
   
   <div id="alertFlash">alert window</div>
   
@@ -74,14 +83,37 @@
     <div class="characterSelectItem"></div>
   </div>
 
+<!-- ORIGINAL WAY
   <div id="chat">
     <div id="titlebar_chat">CHAT</div>
-    <div id="messages"></div>
+    <div id="messages">
+    </div>
     <div id="contents_message">
       <div id="talkTo"></div>
       <input id="message">
     </div>
   </div>
+-->
+  <div id="chat">
+    <div id="titlebar_chat">CHAT</div>
+    <div id="messages">
+      <!-- PREP WORK FOR CHAT TABS
+      <ul>
+        <li><a href="#messages-1">Global</a></li>
+        <li><a href="#messages-2">System</a></li>
+        <li><a href="#messages-3">Help</a></li>
+      </ul>
+      <div id="messages-1"></div>
+      <div id="messages-2"></div>
+      <div id="messages-3"></div>
+      -->
+    </div>
+    <div id="contents_message">
+      <div id="talkTo"></div>
+      <input id="message">
+    </div>
+  </div>
+
   <div id="debug">
     deb<u><b>u</b></u>g window (aka News)<br>
     June 2016 Alpha Build<br>

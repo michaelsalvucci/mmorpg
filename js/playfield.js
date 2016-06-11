@@ -27,6 +27,40 @@ $(document).ready(function () {
 
 
 
+
+/** http://stackoverflow.com/questions/5129624/convert-js-date-time-to-mysql-datetime
+ * You first need to create a formatting function to pad numbers to two digits…
+ **/
+function twoDigits(d) {
+    if(0 <= d && d < 10) return "0" + d.toString();
+    if(-10 < d && d < 0) return "-0" + (-1*d).toString();
+    return d.toString();
+}
+/**
+ * …and then create the method to output the date string as desired.
+ * Some people hate using prototypes this way, but if you are going
+ * to apply this to more than one Date object, having it as a prototype
+ * makes sense.
+ **/
+Date.prototype.toMysqlFormat = function() {
+    return this.getUTCFullYear() + "-" + twoDigits(1 + this.getUTCMonth()) + "-" + twoDigits(this.getUTCDate()) + " " + twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
+Date.prototype.toTimeFormat = function() {
+    return twoDigits(this.getUTCHours()) + ":" + twoDigits(this.getUTCMinutes()) + ":" + twoDigits(this.getUTCSeconds());
+};
+Date.prototype.toMinuteFormat = function() {
+    return twoDigits(this.getUTCMinutes());
+};
+
+
+
+
+
+
+
+
+
+
     var browserWidth = $(window).width();  // Ref. http://stackoverflow.com/questions/1038727/how-to-get-browser-width-using-javascript-code 
     // change the width element in the #world
     var adjustWorldXScale = browserWidth / 1280; // Assumes our world image is 1280px * 4 wide.
@@ -93,6 +127,7 @@ socket.on('resDebug', function(msg) {
   $('#chat').hide();
   $('#chat').resizable();
   $('#chat').draggable();
+//$('#messages').tabs();
 
   $('#deathmask').hide();
 
@@ -206,7 +241,9 @@ socket.on('resDebug', function(msg) {
     if(code == 13) { // enter key
       socket.emit('chat message', '[' + $('#playerName').text() + '] ' + $('#message').val());
       $('#message').val('');  // clear out the data entry field
-      $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
+//20160607:  moved this line to socket on 'chat message'
+//$('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
+//$('#messages-2')[0].scrollTop = $('#messages-2')[0].scrollHeight;
     }
   })
   .focus();
@@ -275,8 +312,13 @@ socket.on('resDebug', function(msg) {
 
   // chat functionality
   socket.on('chat message', function(msg) {
-    //$('#messages').append($('<li>').text(msg));
-    $('#messages').append(msg + '<br>');
+$('#messages').append('[' + new Date().toTimeFormat() + ']  ' + msg + '<br>');
+//$('#messages-1').append('[' + new Date().toTimeFormat() + ']  ' + msg + '<br>');
+//$('#messages-2').append('[' + new Date().toTimeFormat() + ']  ' + msg + '<br>');
+//$('#messages-3').append('[' + new Date().toTimeFormat() + ']  ' + msg + '<br>');
+
+//20160607:  added this:
+$('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
   });
 
   // Response from server on Turn Right request
@@ -355,7 +397,7 @@ socket.on('resDebug', function(msg) {
         var obj = $.parseJSON(msg).resInventory;
         var contents = "";
         for(var i=0; i<obj.length; i++) {
-            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-id="+i+" data-itemId="+obj[i].itemId +" data-itemTypeName="+obj[i].itemTypeName +" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+            contents = contents + "<div class='each_inventory ui-draggable ui-draggable-handle' data-id="+i+" data-backpackId="+obj[i].backpackId + " data-itemId="+obj[i].itemId +" data-itemTypeName="+obj[i].itemTypeName +" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
         }
         $('#contents_inventory').replaceWith("\
             <div id=contents_inventory>\
@@ -374,10 +416,10 @@ socket.on('resDebug', function(msg) {
       alert($(this).data("itemid"));
       if( $(this).data("itemtypename") === "eat") {
           // this is something to eat
-          alert("this is something to eat");
-          // @TODO:  socket.emit('reqInventoryConsume', window.sessionId, $(this).data("itemid"));  // only eat 1
+          alert("this is something we eat");
+          socket.emit('reqInventoryEat', window.sessionId, $(this).data("backpackid"));  // only eat 1
       } else {
-          alert("this is not something to eat");
+          alert("this is not something we eat");
       }
     });
 
@@ -650,6 +692,21 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
       </div>");
   });
 
+  // This is not used right now, but a different implementation...
+  // ...is used in this script for CSS3 RAIN EFFECT:
+  socket.on('audioWeather', function(msg) {
+    console.log('audioWeather=' + msg);
+//    alert(msg);
+    $('#audioWeather').replaceWith("\
+      <div id=audioWeather>\
+        <audio autoplay=autoplay>\
+          <source src=/audio/weather/"+msg+" type=audio/wav>\
+        </audio>\
+      </div>");
+  });
+
+
+
 
     socket.on('monsterDamageNumber', function(msg) {
         $('#monsterDamageNumber').replaceWith("<div id=monsterDamageNumber style=\"display:inline\">"+msg+"</div>");
@@ -669,6 +726,60 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
     socket.on('monsterWipe', function(msg) {
         $('#monsters').replaceWith("<div id=\"monsters\"></div>");
     });
+
+
+
+
+
+
+
+
+
+
+// START OF: CSS3 RAIN EFFECT ( Ref. https://codepen.io/alemesre/pen/hAxGg )
+// function to generate a random number range.
+function randRange( minNum, maxNum) {
+  return (Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum);
+}
+// number of drops created.
+//var nbDrop = 858; 
+var nbDrop = randRange(100,858);
+// function to generate drops
+function createRain() {
+	for( i=1;i<nbDrop;i++) {
+	var dropLeft = randRange(0,1600);
+	var dropTop = randRange(-1000,1400);
+	$('.rain').append('<div class="drop" id="drop'+i+'"></div>');
+	$('#drop'+i).css('left',dropLeft);
+	$('#drop'+i).css('top',dropTop);
+	}
+}
+// Make it rain
+setInterval(function() {
+  if (
+  new Date().toMinuteFormat() === '09'
+    || new Date().toMinuteFormat() === '14'
+    || new Date().toMinuteFormat() === '24'
+    || new Date().toMinuteFormat() === '34'
+    || new Date().toMinuteFormat() === '44'
+    || new Date().toMinuteFormat() === '54'
+  ) {
+    // http://freesound.org/people/barkenov/sounds/255900/ 
+    // Since I can't use sockets within the same page, I'm creating the weather track here, based on time.  Can we refactor this in the future to be better?
+    $('#audioWeather').replaceWith("\
+      <div id=audioWeather>\
+        <audio autoplay=autoplay>\
+          <source src=/audio/weather/255900__barkenov__hard-rain.wav type=audio/wav>\
+        </audio>\
+      </div>");  // NOTE: the visuals show for 1 minute... the audio plays for 1 minute 4 seconds (length of audio track), hence why audio plays after rain stops
+    $('.rain').show();
+    createRain();
+  } else {
+    $('.rain').hide();
+  }
+  console.log('Minutes Past The Hour = ' + new Date().toMinuteFormat() );
+}, 60 * 1000); // 60 * 1000 milsec = 1 minute // checks once a minute to see if this is the correct rain minute
+// END OF:  CSS3 RAIN EFFECT
 
 
 

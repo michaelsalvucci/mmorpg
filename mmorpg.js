@@ -708,7 +708,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 console.log(getFail() + sessionId + ' err=' + err);
                 return callback(false);
             }
-            var sql = "SELECT b.itemId, i.name, i.image, b.quantity, t.name AS itemTypeName FROM backpacks b LEFT JOIN items i ON b.itemId = i.id LEFT JOIN itemType t ON i.itemType = t.id WHERE b.charId = ?";
+            var sql = "SELECT b.id AS backpackId, b.itemId, i.name, i.image, b.quantity, t.name AS itemTypeName FROM backpacks b LEFT JOIN items i ON b.itemId = i.id LEFT JOIN itemType t ON i.itemType = t.id WHERE b.charId = ?";
             console.log(getPass() + sessionId + ' exports.getInventory:::sql=' + sql);
             connection.query(sql, [charId], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
@@ -792,8 +792,37 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
 
 
+    // Non-blocking quick delete without error checking
+    exports.deleteBackpackIdFromBackpacks = function (backpackId) {
+        pool.getConnection(function (err, connection) {
+            var sql = "DELETE FROM backpacks WHERE id = ?";
+            connection.query(sql, [backpackId], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                return;
+            });
+        });
+    };
 
-
+    exports.updateBackpacksQuantity = function (backpackId, quantity, callback) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(err);
+                return callback(false);
+            }
+            var sql = "UPDATE backpacks SET quantity = ? WHERE id = ? LIMIT 1";
+            connection.query(sql, [quantity, backpackId], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                if (err || results.length === 0) {
+                    // ALWAYS SHOW THIS ERROR
+                    console.log(getFail() + 'exports.updateBackpacksQuantity');
+                    return callback(false);
+                } else {
+                    console.log(getPass() + 'exports.updateBackpacksQuantity');
+                    return callback(true);
+                }
+            });
+        });
+    };
 
 
     exports.deleteLootFromGatherPlants = function (sessionId, zoneId, x, y, z, c, itemId, callback) {
@@ -883,6 +912,45 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         });
     };
 
+    /**
+      * exports.getQuantityOfBackpackId()
+      * Checks to see if the it's a real item being consumed and gets the quantity
+      *
+      * Anti-Cheat Feature:
+      * The cool thing about this function is it displays the error in the server console.log so it will alert the server
+      *   when someone is trying to cheat by sending up a fake backpackId
+      *
+      * JSDoc Reference:  http://en.wikipedia.org/wiki/JSDoc
+      *
+      * @author     2016 Michael Salvucci
+      * @copyright  2016 Michael Salvucci
+      * @exception  err
+      * @license    Proprietary
+      * @link       /docs/exports/isBackpackIdInInventory
+      * @return     quantity  Found backpackId is tied to charId
+      * @return     false Unable to find backpackId for charId (cheater or bug?)
+      * @version    0.0.1
+      **/
+    exports.getQuantityOfBackpackId = function (sessionId, ipAddress, charId, backpackId, callback) {
+        pool.getConnection(function (err, connection) {
+            if (err) {
+                console.log(err);
+                return callback(false);
+            }
+            var sql = "SELECT quantity FROM backpacks WHERE id = ? AND charId = ? LIMIT 1";
+            connection.query(sql, [backpackId, charId], function (err, results) {
+                connection.release(); // always put connection back in pool after last query
+                if (err || results.length === 0) {
+                    // ALWAYS SHOW THIS ERROR
+                    console.log(getFail() + 'exports.isBackpackIdInInventory ' + ipAddress + ' sessionId=' + sessionId + ' charId=' + charId + ' backpackId=' + backpackId + ' results.length=' + results.length + ' results=' + util.inspect(results) + ' Failed to find backpackId for character');
+                    return callback(false);
+                } else {
+                    //console.log(getPass() + 'exports.isBackpackIdInInventory ' + ipAddress + ' sessionId=' + sessionId + ' charId=' + charId + ' backpackId=' + backpackId + ' results.length=' + results.length + ' results=' + util.inspect(results) + ' Found backpackId for character.');
+                    return callback(results[0].quantity);
+                }
+            });
+        });
+    };
 
     exports.setCharacterHpRevised = function (id, charHpRevised, callback) {
         console.log(getPass() + 'exports.setCharacterHpRevised:::id:' + id + 'charHpRevised=' + charHpRevised);
@@ -1033,12 +1101,12 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
     setInterval(function () {
 
         var min = 1,
-            max = 9, // If this is 696969, set it to the correct number.  If it's set to 696969, it's to disable the music during programming.
+            max = 696969, // If this is 696969, set it to the correct number.  If it's set to 696969, it's to disable the music during programming.
             random_number = Math.floor(Math.random() * (max - min + 1)) + min,
             filename = "";
         switch (random_number) {
         case 1:
-            filename = "music/Ai+Vis+Lo+Lop.mp3"; // irish blabber
+            filename = "music/Soundcloud-Tristan_Lohengrin-A_Peaceful_Sanctuary.wav";
             break;
         case 2:
             filename = "music/What+shell+we+do+with+the+drunken+sailor.mp3";
@@ -1065,9 +1133,12 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             filename = "music/Tarantarmoricana.mp3";
             break;
         case 10:
-            filename = "music/Frei.mp3"; // foreign schlep - CURRENTLY DISABLED
+            filename = "music/Ai+Vis+Lo+Lop.mp3"; // irish blabber - CURRENTLY DISABLED
             break;
         case 11:
+            filename = "music/Frei.mp3"; // foreign schlep - CURRENTLY DISABLED
+            break;
+        case 12:
             filename = "music/D.mp3";  // foreign language - CURRENTLY DISABLED
             break;
         default:
@@ -1104,6 +1175,9 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         io.to(socket.id).emit('resSessionId', socket.id);
 
         console.log(getPass() + ' socket.id=' + socket.id  + ' user connected from ' + util.inspect(socket.handshake.address) + ' using ' + util.inspect(socket.handshake.headers['user-agent']));
+
+        io.to(socket.id).emit('chat message', 'user connected from ' + util.inspect(socket.handshake.address) );
+
         onlineClients = onlineClients + 1;
 
         /////////////////////////////////////////////////////////////////////////////
@@ -1324,6 +1398,10 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 io.to(socket.id).emit('audioPlay', filename);
 
                 io.to(socket.id).emit('resAlertFlash', 'Welcome ' + firstName + " " + lastName);
+
+                io.to(socket.id).emit('chat message', 'Welcome ' + firstName + " " + lastName);
+
+                //@TODO:  Put MOTD here in chat message..... // or refactor it, so it's outside of getSpeakMyName
             });
         });
 
@@ -1424,6 +1502,53 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
             });
         });
 
+        socket.on('reqInventoryEat', function (sessionId, backpackId) {
+            exports.getUserCoordinates(sessionId, function (zoneId, x, y, z, c) {  // The callback is sending us zoneId,x,y,z,c
+                exports.getUserIdAndCharId(sessionId, zoneId, x, y, z, c, function (userId, charId) { // The callback is sending userId, charId
+                    exports.getQuantityOfBackpackId(sessionId, util.inspect(socket.handshake.address), charId, backpackId, function (quantity) {
+                        //console.log('quantity=' + quantity);
+                        if (quantity !== false) {
+                            //console.log('quantity=' + quantity);
+                            if (quantity === 1) {
+                                // @TODO: Delete backpackId from backpacks because they ate it
+                                exports.deleteBackpackIdFromBackpacks(backpackId); // non-blocking, but does no error checking
+                            } else {
+                                quantity = quantity - 1; // person eats it
+                                // @TODO: Update the backpack with the correct quantity now
+                                exports.updateBackpacksQuantity(backpackId, quantity, function (bool) {
+                                });
+                            }
+                            // Increase hpCurrent by 3d6
+                            var characterIncreaseAmount = getRandom3d6();
+
+                            // Send message to client to update healthbar to new number
+                            exports.getCharacter(sessionId, charId, function (results2) {  // The callback is sending results2
+                                console.log('results2=' + util.inspect(results2));
+                                // Get the character's hp, then subtract the damage, 
+                                var charHpRevised = results2[0].hpCurrent + characterIncreaseAmount,
+                                    charHpMax = results2[0].hpMax;
+                                exports.setCharacterHpRevised(charId, charHpRevised, function (result3) {
+                                });
+                                console.log('charHpRevised=' + charHpRevised);
+                                console.log('charHpMax=' + charHpMax);
+
+                                var hpBarBodyCurrentPercentage = parseInt(charHpRevised / charHpMax * 1000) / 10;  // show 1 decimal place as a percentage
+                                var JSONobj = JSON.stringify({
+                                    resCharHealthBarBodyCurrent: [charHpRevised, hpBarBodyCurrentPercentage]
+                                });
+
+                                io.to(socket.id).emit('charHealthBarBody', JSONobj);  // Show the changing health bar on the screen
+                            });
+                            // Send updated backpack contents
+                            io.to(socket.id).emit('heyAskForInventory', sessionId);
+                        } else {
+                            console.log(getFail() + 'quantity is false, so there is a cheater or bug');
+                            //do nothing
+                        }
+                    });
+                });
+            });
+        });
 
         /////////////////////////////////////////////////////////////////////////////
         // NAVIGATION and MAP
@@ -1487,6 +1612,8 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         });
 
         socket.on('walk forward', function (msg) {    // w key pressed
+            io.to(socket.id).emit('chat message', 'You moved forward one space');
+
             var sessionId = msg;
             //console.log(getPass() + sessionId + ' walk forward: ' + msg);
             // SELECT the user's coordinates zoneId,x,y,z,compass based on their sessionId
