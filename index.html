@@ -50,7 +50,9 @@
   
   
   <!-- START OF: CSS3 RAIN EFFECT ( Ref. https://codepen.io/alemesre/pen/hAxGg ) -->
-  <section class="rain"></section>
+  
+<!-- CURRENTLY DISABLED  <section class="rain"></section> -->
+
   <!-- END OF: CSS3 RAIN EFFECT -->
 
 
@@ -66,10 +68,10 @@
   
   <div id="alertFlash">alert window</div>
   
-  <div id="avatar">avatar window</div>
+  <div id="avatar"></div>
   
   <div id="bank">
-    <div id="titlebar_bank">BANK</div>
+    <div id="bankTitlebar">BANK</div>
     <div id="bankExit"><i class="icon-collapse"></i></div>
     <div id="myBackpack">
       <div class="myBackpackItem"></div>
@@ -114,12 +116,23 @@
     </div>
   </div>
 
+  <div id="crafting">
+    <div id="craftingTitlebar">CRAFTING</div>
+    <div id="craftingExit"><i class="icon-collapse"></i></div>
+  </div>
+
+  <div id="credits">
+    <div id="creditsTitlebar">CREDITS</div>
+    <div id="creditsExit"><i class="icon-collapse"></i></div>
+    <div id="creditsContents"></div>
+  </div>
+
   <div id="debug">
     deb<u><b>u</b></u>g window (aka News)<br>
     June 2016 Alpha Build<br>
     Requires:  Google Chrome Web Browser<br>
     -Press [CTRL-F5] or [Command-r] to Refresh your browser with the newest version<br>
-    -MENU Commands: b,c,e,f(picks up stuff),i,k,m,p,t,u<br>
+    -MENU Commands: b,c,e,f(picks up stuff),i,k,m,p,q,r,t,u,z<br>
     -NAVIGATION Commands: w,a,d,x<br>
     -LOVE/HATE IT? Email iovooch@gmail.com<br>
     -The golden number below is frames/second meter<br>
@@ -198,6 +211,15 @@
   
   <div id="paperdoll">paperdoll window</div>
   
+  <div id="quest">
+    <div id="questTitlebar">QUESTS</div>
+    <div id="questExit"><i class="icon-collapse"></i></div>
+    <div id="questContents">
+    Go to x=0, y=3 to pick up an Apple.<br>
+    Go to x=5, y=5 to kill a Chicken.<br>
+    </div>
+  </div>
+  
     <div id="skill">
       <div id="skillTitle">Training Queue</div>
       <div id="skillExit"><i class="icon-collapse"></i></div>
@@ -249,23 +271,11 @@
           Reverse Engineering<br>
           TECHNOLOGY<br>
           Religion<br>
-          Lorem<br>
-          Ipsum<br>
-          dolor<br>
-          sit<br>
-          amet<br>
-          consectetur<br>
-          Bar<br>
-          Lorem<br>
-          Ipsum<br>
-          dolor<br>
-          sit<br>
-          amet<br>
-          consectetur<br>
       </div>
       <div id="skillQueued">
       zxcvzvzxvzxcv
       </div>
+      <div id="skillTrainButton"><button type="button">Click Me!</button></div>
     </div>
   
   <div id="trade">trade window</div>
@@ -339,6 +349,7 @@
   <div id="monsterDamageNumber"></div>
 
   <div id="deathmask"></div>
+  <div id="deathmaskResurrect"></div>
 
   <div id="healthBarAura"><div id="healthBarAuraMax"><div id="healthBarAuraCurrent"></div></div><div id="healthBarAuraCurrentNumber"></div></div> <!-- a subtly, pervasive quality or atmospher seen as emanating from a person, place, or thing -->
   <div id="healthBarArmor"><div id="healthBarArmorMax"><div id="healthBarArmorCurrent"></div></div><div id="healthBarArmorCurrentNumber"></div></div>

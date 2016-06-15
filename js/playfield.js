@@ -61,6 +61,7 @@ Date.prototype.toMinuteFormat = function() {
 
 
 
+
     var browserWidth = $(window).width();  // Ref. http://stackoverflow.com/questions/1038727/how-to-get-browser-width-using-javascript-code 
     // change the width element in the #world
     var adjustWorldXScale = browserWidth / 1280; // Assumes our world image is 1280px * 4 wide.
@@ -83,6 +84,12 @@ Date.prototype.toMinuteFormat = function() {
     // For Health Bars Only - This positions them on the screen
     var browserHeight = $(window).height(); // in pixels
     $("#healthBarBody").css("margin", browserHeight - 20 + 9 + 'px 0px 0px -9px');  // 9px border in Google Chrome by default.  Bar is 20px high and at the bottom of the screen.
+    $("#healthBarArmor").css("margin", browserHeight - 40 + 9 + 'px 0px 0px -9px');
+    $("#healthBarAura").css("margin", browserHeight - 60 + 9 + 'px 0px 0px -9px');
+
+    $("#healthBarBody").hide();
+    $("#healthBarArmor").hide();
+    $("#healthBarAura").hide();
 
     // Set Audio Volumes
     //var aud = document.getElementById("audioSoundtrack");
@@ -127,9 +134,13 @@ socket.on('resDebug', function(msg) {
   $('#chat').hide();
   $('#chat').resizable();
   $('#chat').draggable();
-//$('#messages').tabs();
+//$('#messages').tabs(); //coming soon
 
-  $('#deathmask').hide();
+  $('#crafting').hide();
+  $('#crafting').draggable();
+  $('#craftingExit').click(function(event) {
+      $('#crafting').toggle();
+  });
 
   $('#characterSelect').hide();
   $('#characterSelect').draggable();
@@ -166,8 +177,11 @@ socket.on('resDebug', function(msg) {
      };
   });
 
+  $('#credits').hide();
+  $('#credits').draggable();
 
-
+  $('#deathmask').hide();
+  $('#deathmaskResurrect').hide();
 
   $('#debug').hide();
   $('#debug').draggable();
@@ -198,6 +212,13 @@ socket.on('resDebug', function(msg) {
 
   $('#paperdoll').hide();
   $('#paperdoll').draggable();
+
+  $('#quest').hide();
+  $('#quest').draggable();
+  $('#questExit').click(function(event) {
+      $('#quest').toggle();
+  });
+
   
   $('#skill').hide();
   $('#skill').draggable();
@@ -205,14 +226,13 @@ socket.on('resDebug', function(msg) {
       $('#skill').toggle();
   });
   $('#playfield').on("beamMeUp", function(event) {
+    // Load the character
     //alert('beamMeUp,Scotty!' + $('.characterSelectItem').text());
     $('#characterSelect').hide();
 
     // 20150225: Since we are about to show the world to the user, we need to load the monsters.
     // We need to send the zone the character is in, plus the character's x,y - DO WE LEGITIMATELY KNOW THIS HERE?
     socket.emit('getMonsters', null); // @TODO: NEED TO SEND VALUES HERE!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-
 
     // Show the world to the user
     $('#landscape').show();
@@ -226,6 +246,10 @@ socket.on('resDebug', function(msg) {
           <source src=audio/crowd.wav type=audio/wav>\
         </audio>\
       </div>");
+
+    $("#healthBarBody").show();
+    // TEMPORARILY DISABLED FOR NOW: $("#healthBarArmor").show();
+    // TEMPORARILY DISABLED FOR NOW: $("#healthBarAura").show();
   });
 
   $('#trade').hide();
@@ -358,7 +382,7 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
         var obj = $.parseJSON(msg).resBankMyBackpack;
         var contents = "";
         for(var i=0; i<obj.length; i++) {
-            contents = contents + "<div class='myBackpackItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+            contents = contents + "<div class='myBackpackItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-backpackid="+obj[i].backpackId +" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
         }
         $('#myBackpack').replaceWith("\
             <div id=myBackpack>\
@@ -366,8 +390,11 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
             </div>\
         ");
     };
-   // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
-   $('.myBackpackItem').draggable({containment: "#myBank", snap:".myBankItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+    // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
+    // 36 = 32 + 2px margins
+    $('.myBackpackItem').draggable({containment: "#myBank", snap:".myBankItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]}).dblclick(function(){
+        alert('I clicked an item in the backpack');
+    });  
   });
 
   socket.on('resBankMyBank', function(msg) {
@@ -376,7 +403,7 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
         var obj = $.parseJSON(msg).resBankMyBank;
         var contents = "";
         for(var i=0; i<obj.length; i++) {
-            contents = contents + "<div class='myBankItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
+            contents = contents + "<div class='myBankItem ui-draggable ui-draggable-handle' data-itemId="+i+" data-bankid="+obj[i].bankId +" data-quantity="+obj[i].quantity +" title='"+obj[i].quantity+" "+obj[i].name+"' style='background:url(/images/items/"+obj[i].image+");height:32px;width:32px;z-index:90;'></div>";
         }
         $('#myBank').replaceWith("\
             <div id=myBank>\
@@ -385,7 +412,10 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
         ");
     };
    // Remember, when I move items into the bank, this needs to change...  maybe here or somewhere else...
-   $('.myBankItem').draggable({containment: "#myBackpack", snap:".myBackpackItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]});  // 36 = 32 + 2px margins
+   // 36 = 32 + 2px margins
+    $('.myBankItem').draggable({containment: "#myBackpack", snap:".myBackpackItem", snapMode:"inner", snapTolerance:[36], grid:[36,36]}).dblclick(function(){
+        alert('I clicked an item in the bank');
+    });
   });
 
 
@@ -413,7 +443,7 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
         // ... so i can I add doubleclick functionality by adding this...
     }).dblclick(function(){
       console.log(this);
-      alert($(this).data("itemid"));
+      //alert($(this).data("itemid"));
       if( $(this).data("itemtypename") === "eat") {
           // this is something to eat
           alert("this is something we eat");
@@ -530,6 +560,14 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
       $("#paperdoll").toggle();
     }
 
+    if(code == 81 || code == 113) {  // q or Q key pressed
+      $("#quest").toggle();
+    }
+
+    if(code == 82 || code == 114) {  // r or R key pressed
+      $("#crafting").toggle();
+    }
+
     if(code == 84 || code == 116) {  // t or T key pressed
       $("#trade").toggle();
     }
@@ -552,6 +590,11 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
       // walk backward
       socket.emit('reqDrawMap', window.sessionId );
       //map.draggable();// have to do this again, because the class got wiped during the rewrite
+    }
+
+    if(code == 90 || code == 122) {  // z or Z key pressed
+      $("#credits").toggle();
+      socket.emit('reqCredits', window.sessionId );
     }
 
     if(code == 49) {  // 1 key pressed
@@ -602,12 +645,21 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
     $("#interactive").show();
   });
 
+  socket.on('resCredits', function(msg) {
+      $('#creditsContents').html(msg);
+      $('#creditsExit').click(function(event) {
+          $('#credits').hide();
+      });
+  });
+
   socket.on('deathmaskHide', function(msg) {
       $('#deathmask').hide();
+      $('#deathmaskResurrect').hide();
   });
 
   socket.on('deathmaskShow', function(msg) {
       $('#deathmask').show();
+      $('#deathmaskResurrect').text('RESURRECT').show();
   });
 
   socket.on('avatarFlipDead', function(msg) {
@@ -720,7 +772,7 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
         //alert(msg);
         var obj = $.parseJSON(msg).monsterInfo;
         for(var i=0; i<obj.length; i++) {
-            $('#monsters').replaceWith("<div id=monsters style=\"background: url('"+obj[i].image+"') no-repeat;background-color:transparent;height:200;width:200;margin: 650 0 0 650;opacity:0.9;position:absolute;z-index:10;\"></div>");
+            $('#monsters').replaceWith("<div id=monsters style=\"background: url('"+obj[i].image+"') no-repeat;background-color:transparent;height:200;width:200;margin: 650 0 0 650;opacity:0.9;position:absolute;z-index:10;\"><div id=monsterName>"+obj[i].name+"</div></div>");
         }
     });
     socket.on('monsterWipe', function(msg) {

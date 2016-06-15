@@ -685,7 +685,7 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                 console.log(getFail() + sessionId + ' err=' + err);
                 return callback(false);
             }
-            var sql = "SELECT b.itemId, i.name, i.image, b.quantity FROM bank b LEFT JOIN items i ON b.itemId = i.id WHERE b.charId = " + mysql.escape(charId);
+            var sql = "SELECT b.id AS bankId, b.itemId, i.name, i.image, b.quantity FROM bank b LEFT JOIN items i ON b.itemId = i.id WHERE b.charId = " + mysql.escape(charId);
             console.log(getPass() + sessionId + ' exports.getBank:::sql=' + sql);
             connection.query(sql, [], function (err, results) {
                 connection.release(); // always put connection back in pool after last query
@@ -1197,6 +1197,28 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
         });
 
         /////////////////////////////////////////////////////////////////////////////
+        // CREDITS
+        /////////////////////////////////////////////////////////////////////////////
+        socket.on('reqCredits', function () {
+            var results = " Concept / Executive Producer<br> " + 
+" Your name could go here<br><br> \
+ Producer / Director / Online Editor<br> \
+ Michael Salvucci - Twitter: @MSalvucci<br><br> \
+ Editor / Production Co-ordinator<br><br> \
+ Associate Producer / Camera<br><br> \
+ Story Consultants<br><br> \
+ Researchers<br><br> \
+ Production Assistants<br><br> \
+ Music<br><br> \
+ Sound Mixer<br><br> \
+ Animation<br><br> \
+ Colourist<br><br> \
+ Graphics<br><br> \
+ Special Thanks<br><br>";
+            io.to(socket.id).emit('resCredits', results);
+        });
+
+        /////////////////////////////////////////////////////////////////////////////
         // SIGNIN
         /////////////////////////////////////////////////////////////////////////////
         socket.on('login', function (msg) {
@@ -1527,6 +1549,9 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
                                 // Get the character's hp, then subtract the damage, 
                                 var charHpRevised = results2[0].hpCurrent + characterIncreaseAmount,
                                     charHpMax = results2[0].hpMax;
+                                if (charHpRevised > charHpMax) {
+                                    charHpRevised = charHpMax;
+                                }
                                 exports.setCharacterHpRevised(charId, charHpRevised, function (result3) {
                                 });
                                 console.log('charHpRevised=' + charHpRevised);
