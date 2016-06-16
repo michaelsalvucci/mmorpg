@@ -621,6 +621,7 @@ input#message {
 #skill {
     background-color: black;
     margin: 25% 0 0 20%;
+    padding: 0 0 1% 0;
     position: absolute;
     height: 50%;
     width: 60%;
@@ -644,19 +645,82 @@ input#message {
     /*text-align: right;*/
     width: 3%;
 }
-#skillOwn {
-    /*background-color: black;*/
+#skillOwnTitle {
     color: gold;
     float: left;
-    height: 80%;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1.5em;
+    background-color: darkblue;
+    width: 50%;
+}
+#skillQueueTitle {
+    color: gold;
+    background-color: darksalmon;
+    float: left;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1.5em;
+    width: 50%;
+}
+#skillOwn {
+    background-color: darkred;
+    color: gold;
+    float: left;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+    height: 40%;
     overflow-y: scroll;
     width: 50%;
 }
-#skillQueued {
-    width: 50%;
-    /*background-color: black;*/
+.skillOwnCategoryHeader {
+    background-color: darkolivegreen;
     color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+    width: 100%;
+}
+.skillOwnCategoryDetail {
+    background-color: darkslateblue;
+    color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+    width: 100%;
+}
+#skillQueue {
+    width: 50%;
+    background-color: darkgreen;
+    color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
     float: left;
+}
+.skillQueueCategoryHeader {
+    background-color: darkgray;
+    color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+    width: 100%;
+}
+.skillQueueCategoryDetail {
+    background-color: darkviolet;
+    color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+    width: 100%;
+}
+#skillTrainButton {
+    width: 100%;
+    background-color: darkcyan;
+    color: gold;
+    text-align: right;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
+}
+#skillBottom {
+    width: 100%;
+    background-color: darkgoldenrod;
+    color: gold;
+    font-family: 'IM Fell English SC', serif;
+    font-size: 1em;
 }
 
 #trade {

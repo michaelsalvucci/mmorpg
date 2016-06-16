@@ -218,13 +218,14 @@ socket.on('resDebug', function(msg) {
   $('#questExit').click(function(event) {
       $('#quest').toggle();
   });
-
   
   $('#skill').hide();
   $('#skill').draggable();
+  $('#skill').resizable();
   $('#skillExit').click(function(event) {
       $('#skill').toggle();
   });
+
   $('#playfield').on("beamMeUp", function(event) {
     // Load the character
     //alert('beamMeUp,Scotty!' + $('.characterSelectItem').text());
