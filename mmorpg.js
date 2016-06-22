@@ -26,20 +26,16 @@
         io = require('socket.io')(http);   //var socket = require('socket.io-client')(ip);
 
     /*jslint nomen: true*/ // allow dangling _ in __dirname
-    //app.get('/vendor/jquery/dist/jquery.min.js', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.js"); });
     app.get('/vendor/jquery/dist/jquery.min.js', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.js"); });
-    //app.get('/vendor/jquery/dist/jquery.min.map', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.map"); });
     app.get('/vendor/jquery/dist/jquery.min.map', function (req, res) {res.sendFile(__dirname + "/vendor/jquery/dist/jquery.min.map"); });
-    //app.get('/node_modules/socket.io-client/socket.io.js', function (req, res) {res.sendFile(__dirname + "/node_modules/socket.io-client/socket.io.js"); });
     app.get('/node_modules/socket.io-client/socket.io.js', function (req, res) {res.sendFile(__dirname + "/node_modules/socket.io-client/socket.io.js"); });
 
-    //app.get('/node_modules/three/three.min.js', function (req, res) {res.sendFile(__dirname + "/node_modules/three/three.min.js"); });
     app.get('/node_modules/three/three.min.js', function (req, res) {res.sendFile(__dirname + "/node_modules/three/three.min.js"); });
 
-    //app.get('/js/playfield.js', function (req, res) {res.sendFile(__dirname + "/js/playfield.js"); });
     app.get('/js/playfield.js', function (req, res) {res.sendFile(__dirname + "/js/playfield.js"); });
-    //app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/style.css"); });
     app.get('/css/style.css', function (req, res) {res.sendFile(__dirname + "/css/style.css"); });
+    app.get('/js/TimeCircles/inc/TimeCircles.css', function (req, res) {res.sendFile(__dirname + "/js/TimeCircles/inc/TimeCircles.css"); });
+    app.get('/js/TimeCircles/inc/TimeCircles.js', function (req, res) {res.sendFile(__dirname + "/js/TimeCircles/inc/TimeCircles.js"); });
 
     /* POTENTIAL FIX...........
     As of express 4.x, express.static() is handled by serve-static package middleware. 
@@ -610,41 +606,6 @@
 
 
 
-
-
-
-
-    /*
-    exports.isMapMonster = function qryMonsterPlantsBasedOnzoneIdXY(zoneId, i, j, callback) {
-      //console.log('exports.isMapMonster:::zoneId=' + zoneId + ' i=' + i + ' j=' + j);
-      pool.getConnection(function(err, connection) {
-      if(err) { console.log(getFail() + ' err=' + err); return callback(err); } // this should probably be false (ie. test it both ways)
-      return callback(true);
-                                  //    var sql = "SELECT zoneId, x, y FROM monsterPlants WHERE zoneId = ? AND x = ? AND y = ?";
-                                  //    connection.query(sql, [zoneId, i, j], string, function(err, results) {
-                                  //console.log('rezx='+results);
-    //console.log(getPass() + 'freeConnections=' + util.inspect(connection.config.pool._freeConnections));
-    connection.release(); // always put connection back in pool after last query
-    sleep(50, function() { //50ms
-       // executes after one second, and blocks the thread
-    })
-                                  //      if(err) {
-                                  //        console.log(getFail() + ' isMapMonster=fail err='+err);
-                                  //        return callback(false); // this should probably be set to false (ie. test it both ways)
-                                  //        // @todo Log the character out, and add a console abort message???  No sessionId sent, so probably not required here.
-                                  //      } else {
-                                  //        if(results !="" && results != null) {
-                                  //          console.log(getPass() + 'isMapMonster at i=' + i + ' j=' + j);
-                                  //          console.log( getPass() + util.inspect(results) );
-                                  //          return callback(string);
-                                  //        } else {
-                                  //          return callback(false);
-                                  //        }
-                                  //      }
-                                  //    });
-      });
-    };
-    */
 
 
 
@@ -1357,13 +1318,13 @@ var sql = "SELECT DISTINCT c.id AS charId, c.firstName AS firstName, c.lastName 
 
                                     // Is the character dead?
                                     if (characterDamage >= results2[0].hpCurrent) {
+                                        io.to(socket.id).emit('avatarFlipDead', "");
                                         // Yes, the character is dead
                                         console.log('character is dead');
                                         // @todo:  emit character dead (new thing to write)
                                         io.to(socket.id).emit('resAlertFlash', 'YOU ARE DEAD!');
                                         io.to(socket.id).emit('audioPlay', "sad_trombone.wav");
                                         io.to(socket.id).emit('deathmaskShow', "");
-                                        io.to(socket.id).emit('avatarFlipDead', "");
                                     }
                                 });
                             });

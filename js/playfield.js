@@ -182,6 +182,9 @@ socket.on('resDebug', function(msg) {
 
   $('#deathmask').hide();
   $('#deathmaskResurrect').hide();
+  $('#deathmaskCountdownTimer').hide();
+  //$("#deathmaskCountdownTimer").TimeCircles().stop(); 
+  $('#deathmaskResurrectButton').hide();
 
   $('#debug').hide();
   $('#debug').draggable();
@@ -254,7 +257,13 @@ socket.on('resDebug', function(msg) {
   });
 
   $('#trade').hide();
+  $('#tradeContents').tabs().addClass("ui-tabs-vertical ui-helper-clearfix");
+  $('#tradeContents li').removeClass("ui-corner-top").addClass("ui-corner-left");
+  $('#tradeExit').click(function(event) {
+      $('#trade').toggle();
+  });
   $('#trade').draggable();
+  $('#trade').resizable();
 
   $('#world').hide();
   $('#world').draggable();
@@ -447,10 +456,10 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
       //alert($(this).data("itemid"));
       if( $(this).data("itemtypename") === "eat") {
           // this is something to eat
-          alert("this is something we eat");
+          //alert("this is something we eat");
           socket.emit('reqInventoryEat', window.sessionId, $(this).data("backpackid"));  // only eat 1
       } else {
-          alert("this is not something we eat");
+          //alert("this is not something we eat");
       }
     });
 
@@ -571,6 +580,8 @@ $('#messages')[0].scrollTop = $('#messages')[0].scrollHeight;
 
     if(code == 84 || code == 116) {  // t or T key pressed
       $("#trade").toggle();
+      $("#ui-id-4").click();  // NOTE:  not sure why it's called this!
+      $("#menu").focus();
     }
 
     if(code == 85 || code == 117) {  // u or U key pressed
@@ -659,8 +670,40 @@ if ( $('#debug').find('div#sessionId').text() !== window.sessionId ) {
   });
 
   socket.on('deathmaskShow', function(msg) {
+      //alert('1');
       $('#deathmask').show();
-      $('#deathmaskResurrect').text('RESURRECT').show();
+      //alert('2');
+      $('#deathmaskCountdownTimer').show();
+      $('#deathmaskCountdownTimer').TimeCircles({
+        "bg_width": 1.3,
+        "fg_width": 0.1,
+        "count_past_zero": false,
+        "start": true,
+        "time": {
+          "Days": { show: false },
+          "Hours": { show: false },
+          "Minutes": { show: false },
+          "Seconds": { color: "#99ccff", show: true }
+        }
+      }).restart();
+
+      setTimeout(function() {
+        $('#deathmaskResurrectButton').hide();
+        $('#deathmaskCountdownTimer').TimeCircles().end().fadeOut();
+        $('#deathmaskResurrectButton').show();
+      }, 10000);
+
+      $('.deathmaskResurrectButton').click(function(event) {
+          $('#avatar').css({transform:'rotate(0deg)'});  // put avatar back on its feet
+          $('#deathmaskResurrect').hide();
+          $('#deathmaskResurrectButton').hide();
+          $('#deathmask').hide();
+          //$('#deathmaskCountdownTimer').data("timer")=12; // reset the countdown timer to 12
+          $('#menu').focus();
+      });
+
+      $('#deathmaskResurrect').show();
+
   });
 
   socket.on('avatarFlipDead', function(msg) {
@@ -810,15 +853,12 @@ function createRain() {
 // Make it rain
 setInterval(function() {
   if (
-  new Date().toMinuteFormat() === '09'
-    || new Date().toMinuteFormat() === '14'
-    || new Date().toMinuteFormat() === '24'
-    || new Date().toMinuteFormat() === '34'
-    || new Date().toMinuteFormat() === '44'
-    || new Date().toMinuteFormat() === '54'
+  new Date().toMinuteFormat() === '00'
+    || new Date().toMinuteFormat() === '20'
+    || new Date().toMinuteFormat() === '40'
   ) {
     // http://freesound.org/people/barkenov/sounds/255900/ 
-    // Since I can't use sockets within the same page, I'm creating the weather track here, based on time.  Can we refactor this in the future to be better?
+    // Since I can't use sockets within the same page, I'm creating the weather soundtrack here, based on time.  Can we refactor this in the future to be better?
     $('#audioWeather').replaceWith("\
       <div id=audioWeather>\
         <audio autoplay=autoplay>\

@@ -41,6 +41,10 @@
   <!-- Visit http://fortawesome.github.io/Font-Awesome/3.2.1/icons/ to see what they look like -->
   <link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
 
+  <!-- http://git.wimbarelds.nl/TimeCircles/readme.php -->
+  <script type="text/javascript" src="js/TimeCircles/inc/TimeCircles.js"></script>
+  <link href="js/TimeCircles/inc/TimeCircles.css" rel="stylesheet">
+  
 </head>
 
 <body>
@@ -129,7 +133,7 @@
 
   <div id="debug">
     deb<u><b>u</b></u>g window (aka News)<br>
-    June 2016 Alpha Build<br>
+    June 2016 Pre-Alpha Build<br>
     Requires:  Google Chrome Web Browser<br>
     -Press [CTRL-F5] or [Command-r] to Refresh your browser with the newest version<br>
     -MENU Commands: b,c,e,f(picks up stuff),i,k,m,p,q,r,t,u,z<br>
@@ -307,7 +311,45 @@
 
     </div>
 
-  <div id="trade">trade window</div>
+  <div id="trade">
+        <div id="tradeTitlebar">Trade Window</div>
+    <div id="tradeExit"><i class="icon-collapse"></i></div>
+    <div id="tradeContents">
+      <ul>
+        <li><a href="#tradeContents-1"><i class="icon-chevron-sign-right"></i> Buy Chips/Wads/Coins</a></li>
+        <li><a href="#tradeContents-2"><i class="icon-chevron-sign-right"></i> Redeem Code</a></li>
+        <li><a href="#tradeContents-3"><i class="icon-chevron-sign-right"></i> Currency Exchange</a></li>
+        <li><a href="#tradeContents-4"><i class="icon-chevron-sign-right"></i> Trading Post</a></li>
+        <li><a href="#tradeContents-5"><i class="icon-chevron-sign-right"></i> Shop</a></li>
+      </ul>
+      <div id="tradeContents-1">
+        <h2>Buy Chips/Wads/Coins</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis cursus nisl non massa elementum, eget faucibus mi sollicitudin. Maecenas eget elementum sapien, eget pulvinar ipsum. Fusce rutrum et turpis sed sodales. Suspendisse sed justo eleifend, bibendum tellus ut, rhoncus augue. Quisque sit amet faucibus libero. Curabitur in leo ipsum. Nunc vehicula arcu in fermentum eleifend. Pellentesque quam nibh, sodales nec commodo eu, cursus a neque. Donec ornare sapien vitae viverra hendrerit. Proin molestie mi id odio porta sollicitudin. Nunc eget tortor suscipit, ullamcorper ipsum quis, pellentesque lacus. Cras ut maximus ex. Nulla facilisi. Quisque pellentesque rhoncus risus, in ullamcorper urna varius eu.</p>
+        <p>Donec accumsan mattis elit, aliquet euismod orci fringilla ut. Phasellus venenatis est at ex molestie, et egestas nulla venenatis. Fusce erat arcu, vehicula et facilisis eget, dictum eu sem. Suspendisse luctus egestas lectus, non pretium dui facilisis nec. Proin et viverra dolor. Proin ac velit quis ipsum viverra ultricies. Curabitur maximus neque vel turpis aliquet, eu feugiat purus tincidunt. Cras imperdiet porta quam, at maximus mauris iaculis sit amet. </p>
+      </div>
+      <div id="tradeContents-2">
+        <h2>Redeeem Code</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis cursus nisl non massa elementum, eget faucibus mi sollicitudin. Maecenas eget elementum sapien, eget pulvinar ipsum. Fusce rutrum et turpis sed sodales. Suspendisse sed justo eleifend, bibendum tellus ut, rhoncus augue. Quisque sit amet faucibus libero. Curabitur in leo ipsum. Nunc vehicula arcu in fermentum eleifend. Pellentesque quam nibh, sodales nec commodo eu, cursus a neque. Donec ornare sapien vitae viverra hendrerit. Proin molestie mi id odio porta sollicitudin. Nunc eget tortor suscipit, ullamcorper ipsum quis, pellentesque lacus. Cras ut maximus ex. Nulla facilisi. Quisque pellentesque rhoncus risus, in ullamcorper urna varius eu.</p>
+        <p>Donec accumsan mattis elit, aliquet euismod orci fringilla ut. Phasellus venenatis est at ex molestie, et egestas nulla venenatis. Fusce erat arcu, vehicula et facilisis eget, dictum eu sem. Suspendisse luctus egestas lectus, non pretium dui facilisis nec. Proin et viverra dolor. Proin ac velit quis ipsum viverra ultricies. Curabitur maximus neque vel turpis aliquet, eu feugiat purus tincidunt. Cras imperdiet porta quam, at maximus mauris iaculis sit amet. </p>
+        <p>This feature is not available right now, but if it was, you might be able find temporary codes on our Web site, Foobarbook, or Twitfoobarter pages.</p>
+      </div>
+      <div id="tradeContents-3">
+        <h2>Currency Exchange</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis cursus nisl non massa elementum, eget faucibus mi sollicitudin. Maecenas eget elementum sapien, eget pulvinar ipsum. Fusce rutrum et turpis sed sodales. Suspendisse sed justo eleifend, bibendum tellus ut, rhoncus augue. Quisque sit amet faucibus libero. Curabitur in leo ipsum. Nunc vehicula arcu in fermentum eleifend. Pellentesque quam nibh, sodales nec commodo eu, cursus a neque. Donec ornare sapien vitae viverra hendrerit. Proin molestie mi id odio porta sollicitudin. Nunc eget tortor suscipit, ullamcorper ipsum quis, pellentesque lacus. Cras ut maximus ex. Nulla facilisi. Quisque pellentesque rhoncus risus, in ullamcorper urna varius eu.</p>
+        <p>Donec accumsan mattis elit, aliquet euismod orci fringilla ut. Phasellus venenatis est at ex molestie, et egestas nulla venenatis. Fusce erat arcu, vehicula et facilisis eget, dictum eu sem. Suspendisse luctus egestas lectus, non pretium dui facilisis nec. Proin et viverra dolor. Proin ac velit quis ipsum viverra ultricies. Curabitur maximus neque vel turpis aliquet, eu feugiat purus tincidunt. Cras imperdiet porta quam, at maximus mauris iaculis sit amet. </p>
+      </div>
+      <div id="tradeContents-4">
+        <h2>Trading Post</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis cursus nisl non massa elementum, eget faucibus mi sollicitudin. Maecenas eget elementum sapien, eget pulvinar ipsum. Fusce rutrum et turpis sed sodales. Suspendisse sed justo eleifend, bibendum tellus ut, rhoncus augue. Quisque sit amet faucibus libero. Curabitur in leo ipsum. Nunc vehicula arcu in fermentum eleifend. Pellentesque quam nibh, sodales nec commodo eu, cursus a neque. Donec ornare sapien vitae viverra hendrerit. Proin molestie mi id odio porta sollicitudin. Nunc eget tortor suscipit, ullamcorper ipsum quis, pellentesque lacus. Cras ut maximus ex. Nulla facilisi. Quisque pellentesque rhoncus risus, in ullamcorper urna varius eu.</p>
+        <p>Donec accumsan mattis elit, aliquet euismod orci fringilla ut. Phasellus venenatis est at ex molestie, et egestas nulla venenatis. Fusce erat arcu, vehicula et facilisis eget, dictum eu sem. Suspendisse luctus egestas lectus, non pretium dui facilisis nec. Proin et viverra dolor. Proin ac velit quis ipsum viverra ultricies. Curabitur maximus neque vel turpis aliquet, eu feugiat purus tincidunt. Cras imperdiet porta quam, at maximus mauris iaculis sit amet. </p>
+      </div>
+      <div id="tradeContents-5">
+        <h2>Shop</h2>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Duis cursus nisl non massa elementum, eget faucibus mi sollicitudin. Maecenas eget elementum sapien, eget pulvinar ipsum. Fusce rutrum et turpis sed sodales. Suspendisse sed justo eleifend, bibendum tellus ut, rhoncus augue. Quisque sit amet faucibus libero. Curabitur in leo ipsum. Nunc vehicula arcu in fermentum eleifend. Pellentesque quam nibh, sodales nec commodo eu, cursus a neque. Donec ornare sapien vitae viverra hendrerit. Proin molestie mi id odio porta sollicitudin. Nunc eget tortor suscipit, ullamcorper ipsum quis, pellentesque lacus. Cras ut maximus ex. Nulla facilisi. Quisque pellentesque rhoncus risus, in ullamcorper urna varius eu.</p>
+        <p>Donec accumsan mattis elit, aliquet euismod orci fringilla ut. Phasellus venenatis est at ex molestie, et egestas nulla venenatis. Fusce erat arcu, vehicula et facilisis eget, dictum eu sem. Suspendisse luctus egestas lectus, non pretium dui facilisis nec. Proin et viverra dolor. Proin ac velit quis ipsum viverra ultricies. Curabitur maximus neque vel turpis aliquet, eu feugiat purus tincidunt. Cras imperdiet porta quam, at maximus mauris iaculis sit amet. </p>
+      </div>
+    </div>
+  </div>
 
   <!-- @TODO: COMPASS BOX NEEDS TO BE CENTERED TO USER'S SCREEN WIDTH -->
   <div id="compass">compass window</div>
@@ -378,7 +420,10 @@
   <div id="monsterDamageNumber"></div>
 
   <div id="deathmask"></div>
-  <div id="deathmaskResurrect"></div>
+  <div id="deathmaskResurrect">
+    <div id="deathmaskCountdownTimer" data-timer="11"></div>
+    <div id="deathmaskResurrectButton"><button class="deathmaskResurrectButton">Resurrect</button></div>
+  </div>
 
   <div id="healthBarAura"><div id="healthBarAuraMax"><div id="healthBarAuraCurrent"></div></div><div id="healthBarAuraCurrentNumber"></div></div> <!-- a subtly, pervasive quality or atmospher seen as emanating from a person, place, or thing -->
   <div id="healthBarArmor"><div id="healthBarArmorMax"><div id="healthBarArmorCurrent"></div></div><div id="healthBarArmorCurrentNumber"></div></div>
